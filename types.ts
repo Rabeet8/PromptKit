@@ -1,0 +1,52 @@
+export type ModelOption = string;
+
+export interface HeaderProps {
+  title: string;
+  onBack?: () => void;
+  onSettingsPress?: () => void;
+}
+
+export interface ModelDropdownProps {
+  label: string;
+  value: string;
+  options: ModelOption[];
+  isOpen: boolean;
+  onToggle: () => void;
+  onSelect: (value: string) => void;
+  maxMenuHeight?: number;
+}
+
+export interface InputCardProps {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  keyboardType?: "default" | "numeric";
+}
+
+export interface InputRowProps {
+  left: InputCardProps;
+  right: InputCardProps;
+}
+
+export interface CacheSliderProps {
+  label: string;
+  value: number;           // 0–100
+  onChange: (v: number) => void;
+  min?: number;
+  max?: number;
+  step?: number;
+}
+
+export interface CostCardProps {
+  title: string;
+  monthlyCost: string;     // display string
+  dailyCost?: string;
+  yearlyCost?: string;
+}
+
+export interface PrimaryButtonProps {
+  label: string;
+  onPress: () => void;
+  disabled?: boolean;
+}
