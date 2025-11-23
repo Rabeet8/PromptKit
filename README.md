@@ -1,28 +1,28 @@
-# PromptKit
+# -)  PromptKit
 
 Your all-in-one AI developer toolkit for mobile.
 
 PromptKit brings essential AI utilities into a beautifully designed mobile app—helping developers, prompt engineers, and AI builders work smarter, faster, and on the go.
 
-## Features
+## -)  Features
 
-### Prompt Linter
+### 1) Prompt Linter
 Analyze prompts for clarity, detect weaknesses, and instantly receive:
 * A quality score
 * Identified issues
 * A rewritten "improved prompt"
 * Helpful analysis & recommendations
 
-### Token Counter
+### 2) Token Counter
 Get instant token and character counts with support for multiple LLMs. Perfect for budgeting API usage and optimizing prompt costs.
 
-### Schema Generator
+### 3) Schema Generator
 Generate JSON Schema, valid examples, and invalid examples from any text description. Includes:
 * Fixed-height scrollable JSON viewer
 * Copy-to-clipboard support
 * API-powered schema generation
 
-### LLM Cost Estimator
+### 4) LLM Cost Estimator
 Calculate API cost usage based on:
 * Model
 * Input tokens
@@ -32,10 +32,10 @@ Calculate API cost usage based on:
 
 Returns detailed daily & monthly estimates using backend-calculated values.
 
-### Dynamic Model Support
+### -) Dynamic Model Support
 Models are fetched directly from the backend to ensure your app stays updated with the latest LLMs.
 
-## Tech Stack
+## -) Tech Stack
 
 * React Native (Expo)
 * TypeScript
@@ -45,7 +45,7 @@ Models are fetched directly from the backend to ensure your app stays updated wi
 * Nested ScrollViews for JSON viewer
 * Clean, theme-consistent UI
 
-##  Folder Structure
+## -)  Folder Structure
 ```
 src/
  ├─ api/
@@ -75,7 +75,7 @@ src/
      └─ apiClient.ts
 ```
 
-## Installation
+## -)  Installation
 ```bash
 git clone https://github.com/your-github/promptkit.git
 cd promptkit
@@ -83,7 +83,7 @@ npm install
 npx expo start
 ```
 
-## Environment Variables
+## -) Environment Variables
 
 Create an `.env` file:
 ```env
@@ -97,10 +97,10 @@ The app automatically pulls models and uses real API endpoints for:
 * `/cost`
 * `/models`
 
-## Contributing
+## -) Contributing
 
 Contributions are welcome! If you'd like to improve UI components, add new AI utilities, or enhance performance, feel free to open a pull request.
 
-## Developers:-
+## -) Developers:-
 
 Syed Rabeet & Huzaifa Ghori
