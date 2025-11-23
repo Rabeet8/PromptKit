@@ -1,50 +1,106 @@
-# Welcome to your Expo app 👋
+# PromptKit
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Your all-in-one AI developer toolkit for mobile.
 
-## Get started
+PromptKit brings essential AI utilities into a beautifully designed mobile app—helping developers, prompt engineers, and AI builders work smarter, faster, and on the go.
 
-1. Install dependencies
+## Features
 
-   ```bash
-   npm install
-   ```
+### Prompt Linter
+Analyze prompts for clarity, detect weaknesses, and instantly receive:
+* A quality score
+* Identified issues
+* A rewritten "improved prompt"
+* Helpful analysis & recommendations
 
-2. Start the app
+### Token Counter
+Get instant token and character counts with support for multiple LLMs. Perfect for budgeting API usage and optimizing prompt costs.
 
-   ```bash
-   npx expo start
-   ```
+### Schema Generator
+Generate JSON Schema, valid examples, and invalid examples from any text description. Includes:
+* Fixed-height scrollable JSON viewer
+* Copy-to-clipboard support
+* API-powered schema generation
 
-In the output, you'll find options to open the app in a
+### LLM Cost Estimator
+Calculate API cost usage based on:
+* Model
+* Input tokens
+* Output tokens
+* Calls per day
+* Cache hit rate
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+Returns detailed daily & monthly estimates using backend-calculated values.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### Dynamic Model Support
+Models are fetched directly from the backend to ensure your app stays updated with the latest LLMs.
 
-## Get a fresh project
+## Tech Stack
 
-When you're ready, run:
+* React Native (Expo)
+* TypeScript
+* REST API integration
+* Custom reusable components (dropdowns, sliders, cards, etc.)
+* expo-clipboard for copy support
+* Nested ScrollViews for JSON viewer
+* Clean, theme-consistent UI
 
-```bash
-npm run reset-project
+##  Folder Structure
+```
+src/
+ ├─ api/
+ │   ├─ costts
+ │   ├─ modelsts
+ │   ├─ lint.ts
+ │   ├─ tokenize.ts
+ │   └─ schema.apits
+ │
+ ├─ components/
+ │   ├─ Button.tsx
+ │   ├─ CacheSlider.tsx
+ │   ├─ CostCard.tsx
+ │   ├─ DescriptionInput.tsx
+ │   ├─ Header.tsx
+ │   ├─ InputCard.tsx
+ │   ├─ InputRows.tsx
+ │   └─ ModelDropdown.tsx
+ │
+ ├─ screens/
+ │   ├─ PromptLinterScreen.tsx
+ │   ├─ TokenCalculatorScreen.tsx
+ │   ├─ SchemaGeneratorScreen.tsx
+ │   └─ CostCalculatorScreen.tsx
+ │
+ └─ utils/
+     └─ apiClient.ts
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Installation
+```bash
+git clone https://github.com/your-github/promptkit.git
+cd promptkit
+npm install
+npx expo start
+```
 
-## Learn more
+## Environment Variables
 
-To learn more about developing your project with Expo, look at the following resources:
+Create an `.env` file:
+```env
+API_BASE_URL=https://your-api-url.com
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+The app automatically pulls models and uses real API endpoints for:
+* `/lint`
+* `/tokenize`
+* `/schema`
+* `/cost`
+* `/models`
 
-## Join the community
+## Contributing
 
-Join our community of developers creating universal apps.
+Contributions are welcome! If you'd like to improve UI components, add new AI utilities, or enhance performance, feel free to open a pull request.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Developers:-
+
+Syed Rabeet & Huzaifa Ghori
