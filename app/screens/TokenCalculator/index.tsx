@@ -9,6 +9,8 @@ import ModelDropdown from "@/components/modelDropdown";
 
 import { TokenizeAPI } from "@/api/tokenize";
 import { trackServiceUsage } from "@/utils/usageTracker";
+import { logInferenceStart, logInferenceSuccess, logInferenceError } from "@/utils/inferenceLogger";
+import { AdMobBannerAd } from "@/components/AdMobBanner";
 
 export default function TokenCalculatorScreen() {
   const router = useRouter();
@@ -62,13 +64,17 @@ export default function TokenCalculatorScreen() {
       return;
     }
 
+    const requestData = {
+      model: selectedModel,
+      text: description,
+    };
+
+    const startTime = logInferenceStart("tokenCalculator", requestData);
+
     try {
       setLoading(true);
 
-      const res = await TokenizeAPI.tokenize({
-        model: selectedModel,
-        text: description,
-      });
+      const res = await TokenizeAPI.tokenize(requestData);
 
       // Example response:
       // { tokens: 188, characters: 976, approx: false }
@@ -82,8 +88,13 @@ export default function TokenCalculatorScreen() {
 
       // Track usage
       await trackServiceUsage("tokenCalculator");
+
+      // Log successful inference
+      await logInferenceSuccess("tokenCalculator", requestData, res, startTime);
     } catch (err) {
       console.log("Error:", err);
+      // Log failed inference
+      await logInferenceError("tokenCalculator", requestData, err, startTime);
     } finally {
       setLoading(false);
     }
@@ -142,6 +153,11 @@ export default function TokenCalculatorScreen() {
 
         
       </ScrollView>
+
+      {/* AdSense Ad */}
+      <View style={styles.adContainer}>
+        <AdMobBannerAd size="banner" />
+      </View>
     </View>
   );
 }
@@ -170,5 +186,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#4A4642",
     marginTop: 4,
+  },
+  adContainer: {
+    marginTop: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

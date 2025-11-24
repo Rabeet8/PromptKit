@@ -13,6 +13,8 @@ import InputCard from "@/components/InputCard";
 import InputRow from "@/components/InputRows";
 import ModelDropdown from "@/components/modelDropdown";
 import { trackServiceUsage } from "@/utils/usageTracker";
+import { AdMobBannerAd } from "@/components/AdMobBanner";
+import { logInferenceStart, logInferenceSuccess, logInferenceError } from "@/utils/inferenceLogger";
 
 export default function CostCalculatorScreen() {
   const router = useRouter();
@@ -57,18 +59,20 @@ export default function CostCalculatorScreen() {
       return;
     }
 
+    const requestData = {
+      model: selectedModel,
+      input_tokens: Number(inputTokens),
+      output_tokens: Number(outputTokens),
+      calls_per_day: Number(callsPerDay),
+      cache_rate: cacheRate / 100, // convert % → decimal (e.g., 25% → 0.25)
+    };
+
+    const startTime = logInferenceStart("llmCostCalculator", requestData);
+
     try {
       setLoading(true);
 
-      const payload = {
-        model: selectedModel,
-        input_tokens: Number(inputTokens),
-        output_tokens: Number(outputTokens),
-        calls_per_day: Number(callsPerDay),
-        cache_hit_rate: cacheRate / 100, // convert % → decimal (e.g., 25% → 0.25)
-      };
-
-      const res = await CostAPI.calculate(payload);
+      const res = await CostAPI.calculateCost(requestData);
       console.log(res,'LLMM')
       // Update UI values
       setDaily(res.daily_cost.toString());
@@ -78,8 +82,13 @@ export default function CostCalculatorScreen() {
       // Track usage
       await trackServiceUsage("llmCostCalculator");
 
+      // Log successful inference
+      await logInferenceSuccess("llmCostCalculator", requestData, res, startTime);
+
     } catch (err) {
       console.log("Cost API Error:", err);
+      // Log failed inference
+      await logInferenceError("llmCostCalculator", requestData, err, startTime);
     } finally {
       setLoading(false);
     }
@@ -154,6 +163,11 @@ export default function CostCalculatorScreen() {
           onPress={calculateCost}
         />
       </ScrollView>
+
+      {/* AdSense Ad */}
+      <View style={styles.adContainer}>
+        <AdMobBannerAd size="banner" />
+      </View>
     </View>
   );
 }
@@ -170,5 +184,10 @@ const styles = StyleSheet.create({
     color: "#8C877F",
     marginBottom: 10,
     marginTop: 16,
+  },
+  adContainer: {
+    marginTop: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

@@ -16,18 +16,19 @@ const ModelDropdown: React.FC<ModelDropdownProps> = ({
   isOpen,
   onToggle,
   onSelect,
+  loading = false,
   maxMenuHeight = 180,
 }) => {
   return (
     <View style={styles.card}>
       <Text style={styles.label}>{label}</Text>
 
-      <TouchableOpacity style={styles.dropdown} onPress={onToggle}>
-        <Text style={styles.dropdownText}>{value}</Text>
+      <TouchableOpacity style={styles.dropdown} onPress={onToggle} disabled={loading}>
+        <Text style={[styles.dropdownText, loading && styles.disabledText]}>{loading ? "Loading..." : value}</Text>
         <Ionicons
           name={isOpen ? "chevron-up" : "chevron-down"}
           size={20}
-          color="#2D2A26"
+          color={loading ? "#8C877F" : "#2D2A26"}
         />
       </TouchableOpacity>
 
@@ -84,6 +85,9 @@ const styles = StyleSheet.create({
   dropdownText: {
     fontSize: 16,
     color: "#2D2A26",
+  },
+  disabledText: {
+    color: "#8C877F",
   },
   dropdownMenu: {
     marginTop: 10,

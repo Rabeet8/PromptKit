@@ -58,9 +58,11 @@ export default function ProfileScreen() {
   }, [loadProfile]);
 
   const onRefresh = useCallback(async () => {
+    console.log("Pull to refresh triggered");
     setRefreshing(true);
     await loadProfile();
     setRefreshing(false);
+    console.log("Pull to refresh completed");
   }, [loadProfile]);
 
   const handleSave = async () => {
@@ -102,10 +104,16 @@ export default function ProfileScreen() {
     <View style={styles.screen}>
 
       <ScrollView 
+        style={{ flex: 1 }}
         showsVerticalScrollIndicator={false} 
         contentContainerStyle={{ paddingBottom: 120, paddingTop: 20 }}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh}
+            colors={['#2D2A26']}
+            tintColor="#2D2A26"
+          />
         }
       >
       <Header title="My Profile" onBack={() => router.back()} onSettingsPress={() => {}} />

@@ -59,7 +59,7 @@ const CostChart: React.FC<CostChartProps> = ({
           style={{
             data: { fill: "#2D2A26" },
           }}
-          animate={{ duration: 700, easing: "easeInOut" }}
+          animate={{ duration: 700, easing: "linear" }}
         />
       </VictoryChart>
     </View>

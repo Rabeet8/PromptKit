@@ -11,6 +11,8 @@ import { LintAPI } from "@/api/lint";
 import * as Clipboard from "expo-clipboard";
 import { Platform, ToastAndroid } from "react-native";
 import { trackServiceUsage } from "@/utils/usageTracker";
+import { AdMobBannerAd } from "@/components/AdMobBanner";
+import { logInferenceStart, logInferenceSuccess, logInferenceError } from "@/utils/inferenceLogger";
 
 export default function PromptLinterScreen() {
   const router = useRouter();
@@ -29,15 +31,19 @@ export default function PromptLinterScreen() {
  const handleLint = async () => {
   if (!prompt.trim()) return;
 
+  const requestData = {
+    prompt: prompt,
+    model: "gpt-4o-mini",
+  };
+
+  const startTime = logInferenceStart("promptLinter", requestData);
+
   try {
     setLoading(true);
 
-    const res = await LintAPI.lintPrompt({
-      prompt: prompt,
-      model: "gpt-4o-mini",   // ✅ THIS IS SENT
-    });
+    const res = await LintAPI.lintPrompt(requestData);
 
-    console.log(res,'resssss')
+    console.log(res,'resssss');
     setScore(res.score);
     setIssues(res.issues || []);
     setImprovedPrompt(res.improved_prompt || "");
@@ -46,6 +52,13 @@ export default function PromptLinterScreen() {
     // Track usage
     await trackServiceUsage("promptLinter");
 
+    // Log successful inference
+    await logInferenceSuccess("promptLinter", requestData, res, startTime);
+
+  } catch (error) {
+    console.log("Error:", error);
+    // Log failed inference
+    await logInferenceError("promptLinter", requestData, error, startTime);
   } finally {
     setLoading(false);
   }
@@ -130,6 +143,11 @@ const handleCopyImprovedPrompt = async () => {
           </>
         )}
       </ScrollView>
+
+      {/* AdSense Ad */}
+      <View style={styles.adContainer}>
+        <AdMobBannerAd size="banner" />
+      </View>
     </View>
   );
 }
@@ -180,5 +198,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#2D2A26",
     lineHeight: 20,
+  },
+  adContainer: {
+    marginTop: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

@@ -10,6 +10,8 @@ import Header from "@/components/Header";
 
 import { SchemaAPI } from "@/api/schema";
 import { trackServiceUsage } from "@/utils/usageTracker";
+import { AdMobBannerAd } from "@/components/AdMobBanner";
+import { logInferenceStart, logInferenceSuccess, logInferenceError } from "@/utils/inferenceLogger";
 
 export default function SchemaGenerator() {
   const router = useRouter();
@@ -35,12 +37,16 @@ export default function SchemaGenerator() {
   const handleGenerate = async () => {
     if (!description.trim()) return;
 
+    const requestData = {
+      description: description,
+    };
+
+    const startTime = logInferenceStart("schemaGenerator", requestData);
+
     try {
       setLoading(true);
 
-      const res = await SchemaAPI.generateSchema({
-        description: description,
-      });
+      const res = await SchemaAPI.generateSchema(requestData);
 
       setSchema(JSON.stringify(res.schema, null, 2));
       setValidExample(JSON.stringify(res.valid_example, null, 2));
@@ -49,8 +55,13 @@ export default function SchemaGenerator() {
       // Track usage
       await trackServiceUsage("schemaGenerator");
 
+      // Log successful inference
+      await logInferenceSuccess("schemaGenerator", requestData, res, startTime);
+
     } catch (err) {
       console.log("Schema Error:", err);
+      // Log failed inference
+      await logInferenceError("schemaGenerator", requestData, err, startTime);
     } finally {
       setLoading(false);
     }
@@ -137,6 +148,11 @@ export default function SchemaGenerator() {
         )}
 
       </ScrollView>
+
+      {/* AdSense Ad */}
+      <View style={styles.adContainer}>
+        <AdMobBannerAd size="banner" />
+      </View>
     </View>
   );
 }
@@ -191,5 +207,10 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#2D2A26",
     lineHeight: 18,
+  },
+  adContainer: {
+    marginTop: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

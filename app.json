@@ -28,6 +28,12 @@
     "plugins": [
       "expo-router",
       [
+        "expo-ads-admob",
+        {
+          "userTrackingPermission": "This app uses ads to provide free services."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",
