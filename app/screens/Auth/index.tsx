@@ -1,16 +1,42 @@
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
+  Alert,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View
 } from "react-native";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/config/firebase";
 
 export default function AuthScreen() {
   const [mode, setMode] = useState<"login" | "signup">("login");
-const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  const handleAuth = async () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Please fill in all fields.");
+      return;
+    }
+    setLoading(true);
+    try {
+      if (mode === "login") {
+        await signInWithEmailAndPassword(auth, email, password);
+        router.replace("/screens/Home");
+      } else {
+        await createUserWithEmailAndPassword(auth, email, password);
+        router.replace("/screens/UserInfo");
+      }
+    } catch (error: any) {
+      Alert.alert("Error", error.message);
+    }
+    setLoading(false);
+  };
 
   return (
     <View style={styles.container}>
@@ -57,7 +83,11 @@ const router = useRouter();
         <TextInput
           placeholder="user@example.com"
           placeholderTextColor="#B7B7B7"
+          value={email}
+          onChangeText={setEmail}
           style={styles.input}
+          keyboardType="email-address"
+          autoCapitalize="none"
         />
 
         <Text style={styles.label}>Password</Text>
@@ -65,20 +95,25 @@ const router = useRouter();
           secureTextEntry
           placeholder="••••••••••••"
           placeholderTextColor="#B7B7B7"
+          value={password}
+          onChangeText={setPassword}
           style={styles.input}
         />
 
         {mode === "login" && (
-          <TouchableOpacity style={styles.forgotBtn}>
+          <TouchableOpacity style={styles.forgotBtn} onPress={() => router.push("/screens/ResetPassword")}>
             <Text style={styles.forgotText}>Forgot password?</Text>
           </TouchableOpacity>
         )}
 
        <TouchableOpacity
-  style={styles.primaryBtn}
-  onPress={() => router.replace("/screens/Home")}
+  style={[styles.primaryBtn, loading && styles.primaryBtnDisabled]}
+  onPress={handleAuth}
+  disabled={loading}
 >
-  <Text style={styles.primaryBtnText}>Continue with Email →</Text>
+  <Text style={styles.primaryBtnText}>
+    {loading ? "Loading..." : mode === "login" ? "Log In" : "Sign Up"}
+  </Text>
 </TouchableOpacity>
       </View>
     </View>
@@ -175,6 +210,10 @@ const styles = StyleSheet.create({
     marginTop: 20,
     padding: 14,
     borderRadius: 12,
+  },
+
+  primaryBtnDisabled: {
+    backgroundColor: "#CCC",
   },
 
   primaryBtnText: {

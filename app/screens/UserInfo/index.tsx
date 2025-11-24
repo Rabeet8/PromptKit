@@ -1,13 +1,20 @@
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import React, { useState, useEffect, useCallback } from "react";
+import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, RefreshControl } from "react-native";
+import { ref, get, set } from "firebase/database";
+import { auth, database } from "@/config/firebase";
+import { getAllServiceUsage } from "@/utils/usageTracker";
 
 import PrimaryButton from "@/components/Button.tsx";
 import DescriptionInput from "@/components/DescriptionCard.tsx";
 import Header from "@/components/Header";
 
-export default function OnboardingScreen() {
+export default function ProfileScreen() {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [usageStats, setUsageStats] = useState<Record<string, number>>({});
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -20,18 +27,88 @@ export default function OnboardingScreen() {
   const userTypes = ["AI Developer", "ML Engineer", "Student", "Researcher", "Product Manager", "Hobbyist", "Other"];
   const experienceLevels = ["Beginner", "Intermediate", "Advanced"];
 
-  const handleContinue = () => {
-    if (!firstName || !lastName || !userType || !experience) return;
+  const loadProfile = useCallback(async () => {
+    const user = auth.currentUser;
+    if (!user) {
+      Alert.alert("Error", "User not authenticated.");
+      router.replace("/screens/Auth");
+      return;
+    }
+    try {
+      const snapshot = await get(ref(database, `users/${user.uid}`));
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        setFirstName(data.firstName || "");
+        setLastName(data.lastName || "");
+        setUserType(data.userType || "");
+        setExperience(data.experience || "");
+        setDescription(data.description || "");
+      }
 
-    // Save to backend or local storage later
-    router.replace("/screens/Home");
+      // Load usage statistics
+      const usage = await getAllServiceUsage();
+      setUsageStats(usage);
+    } catch (error: any) {
+      Alert.alert("Error", "Failed to load profile: " + error.message);
+    }
+  }, [router]);
+
+  useEffect(() => {
+    loadProfile().then(() => setInitialLoading(false));
+  }, [loadProfile]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadProfile();
+    setRefreshing(false);
+  }, [loadProfile]);
+
+  const handleSave = async () => {
+    if (!firstName || !lastName || !userType || !experience) {
+      Alert.alert("Error", "Please fill in all required fields.");
+      return;
+    }
+    const user = auth.currentUser;
+    if (!user) {
+      Alert.alert("Error", "User not authenticated.");
+      return;
+    }
+    setLoading(true);
+    try {
+      await set(ref(database, `users/${user.uid}`), {
+        firstName,
+        lastName,
+        userType,
+        experience,
+        description,
+        email: user.email,
+      });
+      Alert.alert("Success", "Profile updated successfully.");
+    } catch (error: any) {
+      Alert.alert("Error", error.message);
+    }
+    setLoading(false);
   };
+
+  if (initialLoading) {
+    return (
+      <View style={styles.screen}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.screen}>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120, paddingTop: 20 }}>
-      <Header title="Let's Get Started" onBack={() => router.back()} onSettingsPress={() => {}} />
+      <ScrollView 
+        showsVerticalScrollIndicator={false} 
+        contentContainerStyle={{ paddingBottom: 120, paddingTop: 20 }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
+      <Header title="My Profile" onBack={() => router.back()} onSettingsPress={() => {}} />
 
         {/* FIRST NAME */}
         <Text style={styles.label}>First Name</Text>
@@ -95,7 +172,28 @@ export default function OnboardingScreen() {
   placeholder="Enter details about your purpose..."
 />
 
-        <PrimaryButton label="Continue" onPress={handleContinue} />
+        {/* USAGE STATISTICS */}
+        <Text style={styles.label}>Service Usage Statistics</Text>
+        <View style={styles.usageContainer}>
+          <View style={styles.usageRow}>
+            <Text style={styles.usageLabel}>Token Calculator:</Text>
+            <Text style={styles.usageValue}>{usageStats.tokenCalculator || 0} times</Text>
+          </View>
+          <View style={styles.usageRow}>
+            <Text style={styles.usageLabel}>Prompt Linter:</Text>
+            <Text style={styles.usageValue}>{usageStats.promptLinter || 0} times</Text>
+          </View>
+          <View style={styles.usageRow}>
+            <Text style={styles.usageLabel}>Schema Generator:</Text>
+            <Text style={styles.usageValue}>{usageStats.schemaGenerator || 0} times</Text>
+          </View>
+          <View style={styles.usageRow}>
+            <Text style={styles.usageLabel}>LLM Cost Calculator:</Text>
+            <Text style={styles.usageValue}>{usageStats.llmCostCalculator || 0} times</Text>
+          </View>
+        </View>
+
+        <PrimaryButton label={loading ? "Saving..." : "Save Profile"} onPress={handleSave} disabled={loading} />
       </ScrollView>
     </View>
   );
@@ -159,6 +257,40 @@ const styles = StyleSheet.create({
 
   pillTextActive: {
     color: "#FFFFFF",
+    fontWeight: "600",
+  },
+
+  usageContainer: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "#ECE9E4",
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+  },
+
+  usageRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
+  },
+
+  usageLabel: {
+    fontSize: 14,
+    color: "#2D2A26",
+    fontWeight: "500",
+  },
+
+  usageValue: {
+    fontSize: 14,
+    color: "#007AFF",
     fontWeight: "600",
   },
 

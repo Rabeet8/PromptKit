@@ -9,6 +9,7 @@ import DescriptionInput from "@/components/DescriptionCard.tsx";
 import Header from "@/components/Header";
 
 import { SchemaAPI } from "@/api/schema";
+import { trackServiceUsage } from "@/utils/usageTracker";
 
 export default function SchemaGenerator() {
   const router = useRouter();
@@ -44,6 +45,9 @@ export default function SchemaGenerator() {
       setSchema(JSON.stringify(res.schema, null, 2));
       setValidExample(JSON.stringify(res.valid_example, null, 2));
       setInvalidExample(JSON.stringify(res.invalid_example, null, 2));
+
+      // Track usage
+      await trackServiceUsage("schemaGenerator");
 
     } catch (err) {
       console.log("Schema Error:", err);

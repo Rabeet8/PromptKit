@@ -14,6 +14,7 @@ export default function RootLayout() {
       <Stack.Screen name="screens/PromptLinter/index" />
       <Stack.Screen name="screens/SchemaGenerator/index" />
       <Stack.Screen name="screens/LLMCostCalculator/index" />
+      <Stack.Screen name="screens/ResetPassword/index" />
     </Stack>
   );
 }

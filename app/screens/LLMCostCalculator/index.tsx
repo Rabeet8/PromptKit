@@ -12,6 +12,7 @@ import Header from "@/components/Header";
 import InputCard from "@/components/InputCard";
 import InputRow from "@/components/InputRows";
 import ModelDropdown from "@/components/modelDropdown";
+import { trackServiceUsage } from "@/utils/usageTracker";
 
 export default function CostCalculatorScreen() {
   const router = useRouter();
@@ -73,6 +74,9 @@ export default function CostCalculatorScreen() {
       setDaily(res.daily_cost.toString());
       setMonthly(res.monthly_cost.toString());
       setMonthlyCache(res.monthly_cost_with_cache.toString());
+
+      // Track usage
+      await trackServiceUsage("llmCostCalculator");
 
     } catch (err) {
       console.log("Cost API Error:", err);

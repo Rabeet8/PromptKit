@@ -1,13 +1,38 @@
-import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useEffect } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { signOut, onAuthStateChanged } from "firebase/auth";
+import { auth } from "@/config/firebase";
 
 export default function HomeScreen() {
   const router = useRouter();
 
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        router.replace("/screens/Auth");
+      }
+    });
+    return unsubscribe;
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      // onAuthStateChanged will handle redirect
+    } catch (error: any) {
+      Alert.alert("Error", error.message);
+    }
+  };
+
   return (
     <View style={styles.container}>
+      {/* Logout Button */}
+      <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+        <Ionicons name="log-out-outline" size={24} color="#2D2A26" />
+      </TouchableOpacity>
+
       {/* Greeting */}
       <Text style={styles.greeting}>
         Hello Genius,{"\n"}How can I help you today?
@@ -56,6 +81,15 @@ export default function HomeScreen() {
           <Text style={styles.cardText}>LLM Cost Calculator</Text>
         </TouchableOpacity>
 
+        {/* Profile */}
+        <TouchableOpacity
+          style={[styles.card, styles.red]}
+          onPress={() => router.push("/screens/UserInfo")}
+        >
+          <Ionicons name="person-outline" size={32} color="#2D2A26" />
+          <Text style={styles.cardText}>My Profile</Text>
+        </TouchableOpacity>
+
       </View>
     </View>
   );
@@ -66,6 +100,13 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 30,
     backgroundColor: "#FAF7F2", // cream background
+  },
+
+  logoutBtn: {
+    position: "absolute",
+    top: 50,
+    right: 30,
+    padding: 10,
   },
 
   greeting: {
@@ -115,5 +156,8 @@ const styles = StyleSheet.create({
   },
   yellow: {
     backgroundColor: "#F7EDC4", // Soft butter yellow
+  },
+  red: {
+    backgroundColor: "#F8E4E4", // Soft rose
   },
 });

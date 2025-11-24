@@ -10,6 +10,7 @@ import Header from "@/components/Header";
 import { LintAPI } from "@/api/lint";
 import * as Clipboard from "expo-clipboard";
 import { Platform, ToastAndroid } from "react-native";
+import { trackServiceUsage } from "@/utils/usageTracker";
 
 export default function PromptLinterScreen() {
   const router = useRouter();
@@ -41,6 +42,9 @@ export default function PromptLinterScreen() {
     setIssues(res.issues || []);
     setImprovedPrompt(res.improved_prompt || "");
     setAnalysis(res.analysis || "");
+
+    // Track usage
+    await trackServiceUsage("promptLinter");
 
   } finally {
     setLoading(false);

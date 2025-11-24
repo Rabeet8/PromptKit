@@ -8,6 +8,7 @@ import Header from "@/components/Header";
 import ModelDropdown from "@/components/modelDropdown";
 
 import { TokenizeAPI } from "@/api/tokenize";
+import { trackServiceUsage } from "@/utils/usageTracker";
 
 export default function TokenCalculatorScreen() {
   const router = useRouter();
@@ -78,6 +79,9 @@ export default function TokenCalculatorScreen() {
 
       // Also update input token field for cost calculation
       setInputTokens(String(res.tokens));
+
+      // Track usage
+      await trackServiceUsage("tokenCalculator");
     } catch (err) {
       console.log("Error:", err);
     } finally {
