@@ -1,15 +1,19 @@
+import { auth } from "@/config/firebase";
 import { useRouter } from "expo-router";
+import { sendPasswordResetEmail } from "firebase/auth";
+import { Mail } from "lucide-react-native";
 import React, { useState } from "react";
 import {
   Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from "react-native";
-import { sendPasswordResetEmail } from "firebase/auth";
-import { auth } from "@/config/firebase";
 
 export default function ResetPasswordScreen() {
   const [email, setEmail] = useState("");
@@ -21,95 +25,190 @@ export default function ResetPasswordScreen() {
       Alert.alert("Error", "Please enter your email address.");
       return;
     }
+
     setLoading(true);
+
     try {
       await sendPasswordResetEmail(auth, email);
-      Alert.alert("Success", "Password reset email sent. Check your inbox.");
+      Alert.alert("Success", "Password reset link has been sent to your email.");
       router.back();
     } catch (error: any) {
       Alert.alert("Error", error.message);
     }
+
     setLoading(false);
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Reset Password</Text>
-      <Text style={styles.subtitle}>Enter your email to receive a reset link.</Text>
-
-      <TextInput
-        placeholder="user@example.com"
-        placeholderTextColor="#B7B7B7"
-        value={email}
-        onChangeText={setEmail}
-        style={styles.input}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-
-      <TouchableOpacity
-        style={[styles.button, loading && styles.buttonDisabled]}
-        onPress={handleReset}
-        disabled={loading}
+    <KeyboardAvoidingView
+      style={styles.wrapper}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.buttonText}>
-          {loading ? "Sending..." : "Send Reset Email"}
-        </Text>
-      </TouchableOpacity>
+        {/* HEADER */}
+        <View style={styles.headerBlock}>
+          <Text style={styles.title}>Reset Password</Text>
+          <Text style={styles.subtitle}>
+            Enter your email to receive a reset link.
+          </Text>
+        </View>
 
-      <TouchableOpacity onPress={() => router.back()}>
-        <Text style={styles.backText}>Back to Login</Text>
-      </TouchableOpacity>
-    </View>
+        {/* CARD */}
+        <View style={styles.card}>
+          <Text style={styles.label}>Email address</Text>
+
+          <View style={styles.inputWrapper}>
+            <Mail size={20} color="#8C877F" />
+            <TextInput
+              placeholder="user@example.com"
+              placeholderTextColor="#B7B7B7"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              style={styles.input}
+            />
+          </View>
+
+          {/* SEND BUTTON */}
+          <Pressable
+            onPress={handleReset}
+            disabled={loading}
+            style={({ pressed }) => [
+              styles.primaryBtn,
+              loading && styles.primaryBtnDisabled,
+              { transform: [{ scale: pressed ? 0.97 : 1 }] },
+            ]}
+          >
+            <Text style={styles.primaryBtnText}>
+              {loading ? "Sending..." : "Send Reset Email"}
+            </Text>
+          </Pressable>
+
+          {/* BACK */}
+          <Pressable onPress={() => router.back()} style={styles.backBtn}>
+            <Text style={styles.backText}> Back to Login</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  wrapper: {
     flex: 1,
-    padding: 30,
     backgroundColor: "#FAF7F2",
-    justifyContent: "center",
   },
-  title: {
-    fontSize: 24,
-    fontWeight: "700",
-    textAlign: "center",
-    marginBottom: 10,
+
+  scrollContent: {
+    padding: 28,
+    paddingTop: 70,
+    paddingBottom: 60,
   },
-  subtitle: {
-    fontSize: 16,
-    textAlign: "center",
-    marginBottom: 30,
-    color: "#666",
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#DDD",
-    borderRadius: 8,
-    padding: 15,
-    fontSize: 16,
-    marginBottom: 20,
-    backgroundColor: "#FFF",
-  },
-  button: {
-    backgroundColor: "#007AFF",
-    padding: 15,
-    borderRadius: 8,
+
+  /* HEADER */
+  headerBlock: {
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 30,
   },
-  buttonDisabled: {
-    backgroundColor: "#CCC",
+
+  title: {
+    fontSize: 30,
+    fontFamily: "Poppins_700Bold",
+    color: "#2D2A26",
   },
-  buttonText: {
-    color: "#FFF",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  backText: {
+
+  subtitle: {
+    fontSize: 14,
+    color: "#7A746D",
+    marginTop: 4,
     textAlign: "center",
-    color: "#007AFF",
+    fontFamily: "Poppins_500Medium",
+  },
+
+  /* CARD */
+  card: {
+    backgroundColor: "#FFFFFF",
+    padding: 26,
+    borderRadius: 20,
+
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 5 },
+  },
+
+  label: {
+    fontSize: 14,
+    fontFamily: "Poppins_600SemiBold",
+    color: "#2D2A26",
+    marginBottom: 8,
+  },
+
+  inputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F9F6F2",
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#E6E2DD",
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    gap: 10,
+
+    shadowColor: "#000",
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+  },
+
+  input: {
+    flex: 1,
+    fontSize: 15.5,
+    fontFamily: "Poppins_500Medium",
+    color: "#2D2A26",
+  },
+
+  /* BUTTON */
+  primaryBtn: {
+    backgroundColor: "#2D2A26",
+    marginTop: 22,
+    paddingVertical: 16,
+    borderRadius: 14,
+
+    shadowColor: "#000",
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+  },
+
+  primaryBtnDisabled: {
+    opacity: 0.6,
+  },
+
+  primaryBtnText: {
+    color: "#FFFFFF",
     fontSize: 16,
+    textAlign: "center",
+    fontFamily: "Poppins_600SemiBold",
+    letterSpacing: 0.3,
+  },
+
+  /* BACK BUTTON */
+  backBtn: {
+    marginTop: 18,
+    alignItems: "center",
+  },
+
+  backText: {
+    fontSize: 15,
+    color: "#2D2A26",
+    fontFamily: "Poppins_500Medium",
+    textDecorationLine: "underline",
   },
 });

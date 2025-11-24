@@ -1,110 +1,173 @@
-import React, { useEffect } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Alert, SafeAreaView } from "react-native";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { signOut, onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/config/firebase";
+import Dev2Image from "@/assets/images/Huzaifa.jpg";
+import Dev1Image from "@/assets/images/Rabeet.jpg";
+import DeveloperCard from "@/components/DeveloperCard";
+
 import { AdMobBannerAd } from "@/components/AdMobBanner";
+import { auth } from "@/config/firebase";
+import { DeveloperInfo } from "@/types";
+
+import {
+  BadgeDollarSign,
+  Blocks,
+  ListChecks,
+  LogOut,
+  ScanText,
+  UserRound
+} from "lucide-react-native";
+
+import { useRouter } from "expo-router";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import React, { useEffect } from "react";
+import {
+  Alert,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function HomeScreen() {
   const router = useRouter();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      console.log("Auth state changed:", user ? "User logged in" : "User logged out");
-      if (!user) {
-        console.log("No user, redirecting to auth...");
-        router.replace("/screens/Auth");
-      }
+      if (!user) router.replace("/screens/Auth");
     });
     return unsubscribe;
   }, []);
 
   const handleLogout = async () => {
-    console.log("Logout button pressed!");
     try {
-      console.log("Logging out...");
       await signOut(auth);
-      console.log("Sign out successful, navigating to auth...");
       router.replace("/screens/Auth");
     } catch (error: any) {
-      console.error("Logout error:", error);
       Alert.alert("Error", error.message);
     }
   };
 
+  const FeatureCard = ({ icon, label, route, colors }: any) => (
+    <Pressable
+      onPress={() => router.push(route)}
+      style={({ pressed }) => [
+        styles.card,
+        {
+          backgroundColor: colors.bg,
+          transform: [{ scale: pressed ? 0.97 : 1 }],
+        },
+      ]}
+    >
+      <View style={[styles.iconCircle, { backgroundColor: colors.iconBg }]}>
+        {icon}
+      </View>
+      <Text style={styles.cardText}>{label}</Text>
+    </Pressable>
+  );
+
+  const developers: DeveloperInfo[] = [
+    {
+      id: 1,
+      name: "Syed Rabeet",
+      title: "SE / Copy-Paste Legend",
+      image: Dev1Image,
+      socials: {
+        github: "https://github.com/Rabeet8",
+        linkedin: "https://www.linkedin.com/in/syedrabeet/",
+      },
+    },
+    {
+      id: 2,
+      name: "Huzaifa Ghori",
+      title: "SE / Don’t Know JS",
+      image: Dev2Image,
+      socials: {
+        github: "https://github.com/Huzaifa1910/",
+        linkedin: "https://www.linkedin.com/in/huzaifa-ghori-2087771b3/",
+      },
+    },
+  ];
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={24} color="#2D2A26" />
-        </TouchableOpacity>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.container}>
+          
+          {/* Logout Button */}
+          <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+            <LogOut size={22} color="#2D2A26" strokeWidth={2.5} />
+          </TouchableOpacity>
 
-      {/* Greeting */}
-      <Text style={styles.greeting}>
-        Hello Genius,{"\n"}How can I help you today?
-      </Text>
+          {/* Greeting */}
+          <Text style={styles.greeting}>
+            Hello Genius,{"\n"}
+            <Text style={styles.greetingSub}>How can I help you today?</Text>
+          </Text>
 
-      {/* Feature Grid */}
-      <View style={styles.grid}>
+          {/* Feature Grid */}
+          <View style={styles.grid}>
+           <FeatureCard
+  icon={<ScanText size={32} color="#2D2A26" strokeWidth={2.3} />}
+  label="Token Counter"
+  route="/screens/TokenCalculator"
+  colors={{ bg: "#E9F0FF", iconBg: "#D3E1FF" }}
+/>
 
-        {/* Token Counter */}
-        <TouchableOpacity
-          style={[styles.card, styles.blue]}
-          onPress={() => router.push("/screens/TokenCalculator")}
-        >
-          <Ionicons name="calculator-outline" size={32} color="#2D2A26" />
-          <Text style={styles.cardText}>Token Counter</Text>
-        </TouchableOpacity>
+<FeatureCard
+  icon={<ListChecks size={32} color="#2D2A26" strokeWidth={2.3} />}
+  label="Prompt Linter"
+  route="/screens/PromptLinter"
+  colors={{ bg: "#F5EEE2", iconBg: "#E9DFD1" }}
+/>
 
-        {/* Prompt Linter */}
-        <TouchableOpacity
-          style={[styles.card, styles.beige]}
-          onPress={() => router.push("/screens/PromptLinter")}
-        >
-          <MaterialCommunityIcons
-            name="text-box-check-outline"
-            size={32}
-            color="#2D2A26"
-          />
-          <Text style={styles.cardText}>Prompt Linter</Text>
-        </TouchableOpacity>
+<FeatureCard
+  icon={<Blocks size={32} color="#2D2A26" strokeWidth={2.3} />}
+  label="Schema Generator"
+  route="/screens/SchemaGenerator"
+  colors={{ bg: "#E3F8EC", iconBg: "#CFF3DC" }}
+/>
 
-        {/* Schema Generator */}
-        <TouchableOpacity
-          style={[styles.card, styles.green]}
-          onPress={() => router.push("/screens/SchemaGenerator")}
-        >
-          <MaterialCommunityIcons name="code-json" size={32} color="#2D2A26" />
-          <Text style={styles.cardText}>Schema Generator</Text>
-        </TouchableOpacity>
+            <FeatureCard
+              icon={
+                <BadgeDollarSign
+                  size={32}
+                  color="#2D2A26"
+                  strokeWidth={2.3}
+                />
+              }
+              label="LLM Cost Calculator"
+              route="/screens/LLMCostCalculator"
+              colors={{ bg: "#FFF4D8", iconBg: "#F8E8BB" }}
+            />
 
-        {/* Cost Calculator */}
-        <TouchableOpacity
-          style={[styles.card, styles.yellow]}
-          onPress={() => router.push("/screens/LLMCostCalculator")}
-        >
-          <Ionicons name="pricetag-outline" size={32} color="#2D2A26" />
-          <Text style={styles.cardText}>LLM Cost Calculator</Text>
-        </TouchableOpacity>
+            <FeatureCard
+              icon={<UserRound size={32} color="#2D2A26" strokeWidth={2.3} />}
+              label="My Profile"
+              route="/screens/UserInfo"
+              colors={{ bg: "#FFE8E8", iconBg: "#FFD6D6" }}
+            />
+          </View>
 
-        {/* Profile */}
-        <TouchableOpacity
-          style={[styles.card, styles.red]}
-          onPress={() => router.push("/screens/UserInfo")}
-        >
-          <Ionicons name="person-outline" size={32} color="#2D2A26" />
-          <Text style={styles.cardText}>My Profile</Text>
-        </TouchableOpacity>
+          {/* Ad Section */}
+          <View style={styles.adContainer}>
+            <AdMobBannerAd size="banner" />
+          </View>
 
-      </View>
+          {/* Developer Section */}
+          <View style={{ marginTop: 30 }}>
+            <Text style={styles.devHeader}>Developed By</Text>
 
-      {/* AdSense Ad */}
-      <View style={styles.adContainer}>
-        <AdMobBannerAd size="banner" />
-      </View>
-    </View>
+            {developers.map((dev) => (
+              <DeveloperCard
+                key={dev.id}
+                developer={dev}
+                onPress={(id) => console.log("Pressed Developer ID:", id)}
+              />
+            ))}
+          </View>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -114,29 +177,39 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FAF7F2",
   },
+  scrollContainer: {
+    paddingBottom: 40,
+  },
   container: {
     flex: 1,
-    padding: 30,
-    backgroundColor: "#FAF7F2", // cream background
+    padding: 28,
   },
 
   logoutBtn: {
     position: "absolute",
-    top: 20,
+    top: 50,
     right: 20,
     padding: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
     borderRadius: 20,
     zIndex: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
   },
 
   greeting: {
-    fontSize: 28,
-    fontWeight: "700",
+    fontSize: 30,
+    fontFamily: "Poppins_700Bold",
     color: "#2D2A26",
-    marginTop: 30,
+    marginTop: 40,
     marginBottom: 25,
-    lineHeight: 34,
+    lineHeight: 38,
+  },
+  greetingSub: {
+    fontSize: 24,
+    fontFamily: "Poppins_500Medium",
+    color: "#8B7E74",
   },
 
   grid: {
@@ -144,47 +217,43 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     justifyContent: "space-between",
     rowGap: 22,
-    marginTop: 10,
   },
 
   card: {
     width: "48%",
     height: 160,
-    borderRadius: 24,
+    borderRadius: 26,
     padding: 18,
     justifyContent: "space-between",
     shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
     elevation: 3,
   },
 
+  iconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 50,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
   cardText: {
-    fontSize: 15,
-    fontWeight: "600",
+    fontSize: 16,
+    fontFamily: "Poppins_600SemiBold",
     color: "#2D2A26",
   },
 
-  /* Softer pastel colors to match cream theme */
-  blue: {
-    backgroundColor: "#E4ECF8", // Soft cloud blue
-  },
-  beige: {
-    backgroundColor: "#EFE7DD", // Warm neutral beige
-  },
-  green: {
-    backgroundColor: "#E2F1E8", // Pastel mint-green
-  },
-  yellow: {
-    backgroundColor: "#F7EDC4", // Soft butter yellow
-  },
-  red: {
-    backgroundColor: "#F8E4E4", // Soft rose
+  adContainer: {
+    marginTop: 22,
+    alignItems: "center",
   },
 
-  adContainer: {
-    marginTop: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
+  devHeader: {
+    fontSize: 20,
+    fontFamily: "Poppins_700Bold",
+    marginBottom: 16,
+    color: "#2D2A26",
   },
 });

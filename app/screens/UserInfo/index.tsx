@@ -1,9 +1,18 @@
-import { useRouter } from "expo-router";
-import React, { useState, useEffect, useCallback } from "react";
-import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, RefreshControl } from "react-native";
-import { ref, get, set } from "firebase/database";
 import { auth, database } from "@/config/firebase";
 import { getAllServiceUsage } from "@/utils/usageTracker";
+import { useRouter } from "expo-router";
+import { get, ref, set } from "firebase/database";
+import React, { useCallback, useEffect, useState } from "react";
+import {
+  Alert,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 import PrimaryButton from "@/components/Button.tsx";
 import DescriptionInput from "@/components/DescriptionCard.tsx";
@@ -21,10 +30,17 @@ export default function ProfileScreen() {
 
   const [userType, setUserType] = useState("");
   const [experience, setExperience] = useState("");
-  const [purpose, setPurpose] = useState("");
-    const [description, setDescription] = useState("");
+  const [description, setDescription] = useState("");
 
-  const userTypes = ["AI Developer", "ML Engineer", "Student", "Researcher", "Product Manager", "Hobbyist", "Other"];
+  const userTypes = [
+    "AI Developer",
+    "ML Engineer",
+    "Student",
+    "Researcher",
+    "Product Manager",
+    "Hobbyist",
+    "Other",
+  ];
   const experienceLevels = ["Beginner", "Intermediate", "Advanced"];
 
   const loadProfile = useCallback(async () => {
@@ -45,7 +61,6 @@ export default function ProfileScreen() {
         setDescription(data.description || "");
       }
 
-      // Load usage statistics
       const usage = await getAllServiceUsage();
       setUsageStats(usage);
     } catch (error: any) {
@@ -58,11 +73,9 @@ export default function ProfileScreen() {
   }, [loadProfile]);
 
   const onRefresh = useCallback(async () => {
-    console.log("Pull to refresh triggered");
     setRefreshing(true);
     await loadProfile();
     setRefreshing(false);
-    console.log("Pull to refresh completed");
   }, [loadProfile]);
 
   const handleSave = async () => {
@@ -95,28 +108,27 @@ export default function ProfileScreen() {
   if (initialLoading) {
     return (
       <View style={styles.screen}>
-        <Text>Loading...</Text>
+        <Text style={{ fontFamily: "Poppins_500Medium" }}>Loading...</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.screen}>
-
-      <ScrollView 
+      <ScrollView
         style={{ flex: 1 }}
-        showsVerticalScrollIndicator={false} 
-        contentContainerStyle={{ paddingBottom: 120, paddingTop: 20 }}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 120, paddingTop: 10 }}
         refreshControl={
-          <RefreshControl 
-            refreshing={refreshing} 
+          <RefreshControl
+            refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={['#2D2A26']}
+            colors={["#2D2A26"]}
             tintColor="#2D2A26"
           />
         }
       >
-      <Header title="My Profile" onBack={() => router.back()} onSettingsPress={() => {}} />
+        <Header title="My Profile" onBack={() => router.back()} />
 
         {/* FIRST NAME */}
         <Text style={styles.label}>First Name</Text>
@@ -151,7 +163,14 @@ export default function ProfileScreen() {
               style={[styles.pill, userType === type && styles.pillActive]}
               onPress={() => setUserType(type)}
             >
-              <Text style={[styles.pillText, userType === type && styles.pillTextActive]}>{type}</Text>
+              <Text
+                style={[
+                  styles.pillText,
+                  userType === type && styles.pillTextActive,
+                ]}
+              >
+                {type}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -165,7 +184,14 @@ export default function ProfileScreen() {
               style={[styles.pill, experience === lvl && styles.pillActive]}
               onPress={() => setExperience(lvl)}
             >
-              <Text style={[styles.pillText, experience === lvl && styles.pillTextActive]}>{lvl}</Text>
+              <Text
+                style={[
+                  styles.pillText,
+                  experience === lvl && styles.pillTextActive,
+                ]}
+              >
+                {lvl}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -173,35 +199,33 @@ export default function ProfileScreen() {
         {/* PURPOSE */}
         <Text style={styles.label}>Purpose of Using PromptKit</Text>
 
-           <DescriptionInput
-  // label="Description"
-  value={description}
-  onChangeText={setDescription}
-  placeholder="Enter details about your purpose..."
-/>
+        <DescriptionInput
+          value={description}
+          onChangeText={setDescription}
+          placeholder="Enter details about your purpose..."
+        />
 
-        {/* USAGE STATISTICS */}
+        {/* USAGE STATS */}
         <Text style={styles.label}>Service Usage Statistics</Text>
         <View style={styles.usageContainer}>
-          <View style={styles.usageRow}>
-            <Text style={styles.usageLabel}>Token Calculator:</Text>
-            <Text style={styles.usageValue}>{usageStats.tokenCalculator || 0} times</Text>
-          </View>
-          <View style={styles.usageRow}>
-            <Text style={styles.usageLabel}>Prompt Linter:</Text>
-            <Text style={styles.usageValue}>{usageStats.promptLinter || 0} times</Text>
-          </View>
-          <View style={styles.usageRow}>
-            <Text style={styles.usageLabel}>Schema Generator:</Text>
-            <Text style={styles.usageValue}>{usageStats.schemaGenerator || 0} times</Text>
-          </View>
-          <View style={styles.usageRow}>
-            <Text style={styles.usageLabel}>LLM Cost Calculator:</Text>
-            <Text style={styles.usageValue}>{usageStats.llmCostCalculator || 0} times</Text>
-          </View>
+          {[
+            ["Token Calculator", usageStats.tokenCalculator],
+            ["Prompt Linter", usageStats.promptLinter],
+            ["Schema Generator", usageStats.schemaGenerator],
+            ["LLM Cost Calculator", usageStats.llmCostCalculator],
+          ].map(([label, value], index) => (
+            <View key={index} style={styles.usageRow}>
+              <Text style={styles.usageLabel}>{label}:</Text>
+              <Text style={styles.usageValue}>{value || 0} times</Text>
+            </View>
+          ))}
         </View>
 
-        <PrimaryButton label={loading ? "Saving..." : "Save Profile"} onPress={handleSave} disabled={loading} />
+        <PrimaryButton
+          label={loading ? "Saving..." : "Save Profile"}
+          onPress={handleSave}
+          disabled={loading}
+        />
       </ScrollView>
     </View>
   );
@@ -215,20 +239,22 @@ const styles = StyleSheet.create({
   },
 
   label: {
-    fontSize: 14,
-    fontWeight: "600",
+    fontSize: 15,
+    fontFamily: "Poppins_600SemiBold",
     color: "#2D2A26",
-    marginTop: 12,
+    marginTop: 16,
     marginBottom: 8,
   },
 
   inputField: {
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
-    padding: 14,
-    marginBottom: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginBottom: 6,
     borderWidth: 1,
-    borderColor: "#ECE9E4",
+    borderColor: "#E7E2DC",
+
     shadowColor: "#000",
     shadowOpacity: 0.05,
     shadowRadius: 8,
@@ -236,7 +262,8 @@ const styles = StyleSheet.create({
   },
 
   input: {
-    fontSize: 15.5,
+    fontSize: 16,
+    fontFamily: "Poppins_500Medium",
     color: "#2D2A26",
   },
 
@@ -260,21 +287,23 @@ const styles = StyleSheet.create({
 
   pillText: {
     fontSize: 14,
+    fontFamily: "Poppins_500Medium",
     color: "#2D2A26",
   },
 
   pillTextActive: {
     color: "#FFFFFF",
-    fontWeight: "600",
   },
 
   usageContainer: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 16,
+    borderRadius: 18,
     padding: 16,
+    marginTop: 10,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: "#ECE9E4",
+    borderColor: "#E7E2DC",
+
     shadowColor: "#000",
     shadowOpacity: 0.05,
     shadowRadius: 8,
@@ -284,44 +313,20 @@ const styles = StyleSheet.create({
   usageRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: "#F0F0F0",
+    borderBottomColor: "#F2F0EC",
   },
 
   usageLabel: {
     fontSize: 14,
+    fontFamily: "Poppins_500Medium",
     color: "#2D2A26",
-    fontWeight: "500",
   },
 
   usageValue: {
     fontSize: 14,
+    fontFamily: "Poppins_600SemiBold",
     color: "#007AFF",
-    fontWeight: "600",
-  },
-
-  textAreaWrapper: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    backgroundColor: "#FFFFFF",
-    padding: 16,
-    borderRadius: 18,
-    minHeight: 140,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: "#ECE9E4",
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
-  },
-
-  textArea: {
-    flex: 1,
-    fontSize: 15.5,
-    color: "#2D2A26",
-    lineHeight: 22,
   },
 });

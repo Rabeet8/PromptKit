@@ -5,6 +5,7 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { CostAPI } from "@/api/cost";
 import { ModelsAPI } from "@/api/models";
 
+import { AdMobBannerAd } from "@/components/AdMobBanner";
 import PrimaryButton from "@/components/Button.tsx";
 import CacheSlider from "@/components/CacheSlider";
 import CostCard from "@/components/CostCard";
@@ -12,9 +13,8 @@ import Header from "@/components/Header";
 import InputCard from "@/components/InputCard";
 import InputRow from "@/components/InputRows";
 import ModelDropdown from "@/components/modelDropdown";
+import { logInferenceError, logInferenceStart, logInferenceSuccess } from "@/utils/inferenceLogger";
 import { trackServiceUsage } from "@/utils/usageTracker";
-import { AdMobBannerAd } from "@/components/AdMobBanner";
-import { logInferenceStart, logInferenceSuccess, logInferenceError } from "@/utils/inferenceLogger";
 
 export default function CostCalculatorScreen() {
   const router = useRouter();
@@ -147,7 +147,7 @@ export default function CostCalculatorScreen() {
         />
 
         <CacheSlider
-          label="Cache Hit Rate (%)"
+          label="Cache Hit Rate"
           value={cacheRate}
           onChange={setCacheRate}
         />

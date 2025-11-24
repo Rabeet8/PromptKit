@@ -1,18 +1,18 @@
-import { Ionicons } from "@expo/vector-icons";
+import { ArrowLeft } from "lucide-react-native";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { HeaderProps } from "../../types";
 
-const Header: React.FC<HeaderProps> = ({ title, onBack, onSettingsPress }) => {
+const Header: React.FC<HeaderProps> = ({ title, onBack }) => {
   return (
-    <View style={styles.header}>
+    <View style={styles.headerWrapper}>
       {/* Back Button */}
-      <TouchableOpacity onPress={onBack} hitSlop={10} style={styles.backBtn}>
-        <Ionicons name="arrow-back" size={26} color="#2D2A26" />
+      <TouchableOpacity onPress={onBack} hitSlop={15} style={styles.backBtn}>
+        <ArrowLeft size={26} color="#2D2A26" strokeWidth={2.4} />
       </TouchableOpacity>
 
-      {/* Center Title */}
-      <Text style={styles.headerTitle}>{title}</Text>
+      {/* Title */}
+      <Text style={styles.title}>{title}</Text>
     </View>
   );
 };
@@ -20,24 +20,33 @@ const Header: React.FC<HeaderProps> = ({ title, onBack, onSettingsPress }) => {
 export default Header;
 
 const styles = StyleSheet.create({
-  header: {
-    height: 50,
+  headerWrapper: {
+    height: 58,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 25,
-    marginTop: 40,
+    marginTop: 42,
+    marginBottom: 20,
+
+    // subtle shadow for premium feel
+    shadowColor: "#000",
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
 
   backBtn: {
     position: "absolute",
     left: 0,
-    padding: 5,
+    padding: 6,
+    borderRadius: 12,
   },
 
-  headerTitle: {
+  title: {
     fontSize: 22,
-    fontWeight: "700",
+    fontFamily: "Poppins_600SemiBold",
     color: "#2D2A26",
     textAlign: "center",
+    letterSpacing: 0.3,
   },
 });

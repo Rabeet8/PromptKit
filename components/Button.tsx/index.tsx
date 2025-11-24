@@ -1,5 +1,5 @@
 import React from "react";
-import { TouchableOpacity, Text, StyleSheet } from "react-native";
+import { Pressable, StyleSheet, Text } from "react-native";
 import { PrimaryButtonProps } from "../../types";
 
 const PrimaryButton: React.FC<PrimaryButtonProps> = ({
@@ -8,14 +8,17 @@ const PrimaryButton: React.FC<PrimaryButtonProps> = ({
   disabled = false,
 }) => {
   return (
-    <TouchableOpacity
-      style={[styles.btn, disabled && styles.btnDisabled]}
+    <Pressable
       onPress={onPress}
-      activeOpacity={0.85}
       disabled={disabled}
+      style={({ pressed }) => [
+        styles.btn,
+        disabled && styles.btnDisabled,
+        { transform: [{ scale: pressed ? 0.97 : 1 }] },
+      ]}
     >
       <Text style={styles.btnText}>{label}</Text>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 
@@ -24,17 +27,25 @@ export default PrimaryButton;
 const styles = StyleSheet.create({
   btn: {
     backgroundColor: "#2D2A26",
-    paddingVertical: 14,
-    borderRadius: 14,
-    marginTop: 24,
+    paddingVertical: 16,
+    borderRadius: 16,
+    marginTop: 26,
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 4,
   },
+
   btnDisabled: {
-    opacity: 0.6,
+    opacity: 0.55,
   },
+
   btnText: {
     textAlign: "center",
     color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 17,
+    fontFamily: "Poppins_600SemiBold",
+    letterSpacing: 0.3,
   },
 });

@@ -6,6 +6,33 @@ export interface HeaderProps {
   onSettingsPress?: () => void;
 }
 
+export interface DeveloperSocialLinks {
+  github?: string;
+  linkedin?: string;
+  website?: string;
+  twitter?: string;
+}
+
+export interface DeveloperInfo {
+  id: string | number;
+  name: string;
+  title: string;
+  image: string;              
+  socials: DeveloperSocialLinks;
+}
+
+export interface DeveloperCardProps {
+  developer: DeveloperInfo;   
+  onPress?: (id: string | number) => void; 
+}
+
+export interface DeveloperListProps {
+  developers: DeveloperInfo[];
+  title?: string;             
+  horizontal?: boolean;   
+}
+
+
 export interface ModelDropdownProps {
   label: string;
   value: string;

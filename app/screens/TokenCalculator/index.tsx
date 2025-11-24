@@ -2,15 +2,21 @@ import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
+import { Calculator } from "lucide-react-native";
+
 import PrimaryButton from "@/components/Button.tsx";
 import DescriptionInput from "@/components/DescriptionCard.tsx";
 import Header from "@/components/Header";
 import ModelDropdown from "@/components/modelDropdown";
 
 import { TokenizeAPI } from "@/api/tokenize";
-import { trackServiceUsage } from "@/utils/usageTracker";
-import { logInferenceStart, logInferenceSuccess, logInferenceError } from "@/utils/inferenceLogger";
 import { AdMobBannerAd } from "@/components/AdMobBanner";
+import {
+  logInferenceError,
+  logInferenceStart,
+  logInferenceSuccess,
+} from "@/utils/inferenceLogger";
+import { trackServiceUsage } from "@/utils/usageTracker";
 
 export default function TokenCalculatorScreen() {
   const router = useRouter();
@@ -20,26 +26,12 @@ export default function TokenCalculatorScreen() {
 
   const [description, setDescription] = useState("");
 
-  // INPUT VARIABLES
-  const [inputTokens, setInputTokens] = useState("0");
-  const [outputTokens, setOutputTokens] = useState("0");
-  const [callsPerDay, setCallsPerDay] = useState("100");
-  const [cacheRate, setCacheRate] = useState(25);
-
-  // COST RESULTS
-  const [dailyCost, setDailyCost] = useState("—");
-  const [monthlyCost, setMonthlyCost] = useState("—");
-  const [yearlyCost, setYearlyCost] = useState("—");
-
-  // TOKENIZE RESPONSE FIELDS
   const [tokenCount, setTokenCount] = useState<number | null>(null);
   const [characterCount, setCharacterCount] = useState<number | null>(null);
   const [approx, setApprox] = useState<boolean | null>(null);
 
-  // LOADING
   const [loading, setLoading] = useState(false);
 
-  // Static models for now (you can replace with API later)
   const models = [
     "GPT-4o",
     "GPT-4o Mini",
@@ -52,68 +44,61 @@ export default function TokenCalculatorScreen() {
     "Llama 3 8B",
   ];
 
-  // 🔥 TOKENIZE API CALL
+  // 🔥 TOKENIZE HANDLER
   const handleTokenize = async () => {
-    if (!selectedModel) {
-      alert("Please select a model.");
-      return;
-    }
+    if (!selectedModel) return alert("Please select a model.");
+    if (!description.trim()) return alert("Please enter text to tokenize.");
 
-    if (!description.trim()) {
-      alert("Please enter text to tokenize.");
-      return;
-    }
-
-    const requestData = {
-      model: selectedModel,
-      text: description,
-    };
-
+    const requestData = { model: selectedModel, text: description };
     const startTime = logInferenceStart("tokenCalculator", requestData);
 
     try {
       setLoading(true);
-
       const res = await TokenizeAPI.tokenize(requestData);
-
-      // Example response:
-      // { tokens: 188, characters: 976, approx: false }
 
       setTokenCount(res.tokens);
       setCharacterCount(res.characters);
       setApprox(res.approx);
 
-      // Also update input token field for cost calculation
-      setInputTokens(String(res.tokens));
-
-      // Track usage
       await trackServiceUsage("tokenCalculator");
-
-      // Log successful inference
       await logInferenceSuccess("tokenCalculator", requestData, res, startTime);
     } catch (err) {
-      console.log("Error:", err);
-      // Log failed inference
       await logInferenceError("tokenCalculator", requestData, err, startTime);
     } finally {
       setLoading(false);
     }
   };
 
+  const ResultCard = ({
+    icon,
+    title,
+    children,
+  }: {
+    icon?: React.ReactNode;
+    title: string;
+    children: React.ReactNode;
+  }) => (
+    <View style={styles.card}>
+      <View style={styles.cardHeader}>
+        <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
+          {icon}
+          <Text style={styles.cardTitle}>{title}</Text>
+        </View>
+      </View>
+
+      {children}
+    </View>
+  );
 
   return (
     <View style={styles.container}>
-      <Header
-        title="Token Calculator"
-        onBack={() => router.back()}
-        onSettingsPress={() => {}}
-      />
+      <Header title="Token Calculator" onBack={() => router.back()} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 120, paddingTop: 10 }}
+        contentContainerStyle={{ paddingBottom: 120, paddingTop: 20 }}
       >
-        {/* MODEL DROPDOWN */}
+        {/* MODEL SELECTOR */}
         <ModelDropdown
           label="Model"
           value={selectedModel || "Choose your model"}
@@ -126,35 +111,41 @@ export default function TokenCalculatorScreen() {
           }}
         />
 
-        {/* DESCRIPTION */}
+        {/* PROMPT INPUT */}
         <DescriptionInput
           label="Prompt"
           value={description}
           onChangeText={setDescription}
-          placeholder="Enter prompt to tokenize..."
+          placeholder="Write or paste your text to tokenize..."
         />
 
-        {/* TOKENIZE BUTTON */}
+        {/* BUTTON */}
         <PrimaryButton
           label={loading ? "Tokenizing..." : "Tokenize"}
           onPress={handleTokenize}
+          disabled={loading}
         />
 
-        {/* DISPLAY TOKENIZE RESULTS */}
+        {/* RESULTS */}
         {tokenCount !== null && (
-          <View style={styles.resultBox}>
-            <Text style={styles.resultLabel}>Tokenization Result</Text>
+          <ResultCard
+            title="Tokenization Result"
+            icon={<Calculator size={20} color="#2D2A26" strokeWidth={2} />}
+          >
+            <View style={styles.resultRow}>
+              <Text style={styles.resultLabel}>Total Tokens</Text>
+              <Text style={styles.resultValue}>{tokenCount}</Text>
+            </View>
 
-            <Text style={styles.resultText}>Tokens: {tokenCount}</Text>
-            <Text style={styles.resultText}>Characters: {characterCount}</Text>
-          
-          </View>
+            <View style={styles.resultRow}>
+              <Text style={styles.resultLabel}>Characters</Text>
+              <Text style={styles.resultValue}>{characterCount}</Text>
+            </View>
+
+          </ResultCard>
         )}
-
-        
       </ScrollView>
 
-      {/* AdSense Ad */}
       <View style={styles.adContainer}>
         <AdMobBannerAd size="banner" />
       </View>
@@ -166,30 +157,53 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FAF7F2",
-    padding: 26,
+    paddingHorizontal: 26,
   },
-  resultBox: {
-    backgroundColor: "#fff",
-    padding: 16,
-    borderRadius: 12,
-    marginTop: 20,
-    borderColor: "#E5DED5",
-    borderWidth: 1,
+
+  card: {
+    backgroundColor: "#FFFFFF",
+    padding: 20,
+    borderRadius: 18,
+    marginTop: 24,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
   },
-  resultLabel: {
-    fontSize: 15,
-    fontWeight: "700",
-    marginBottom: 10,
+
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 14,
+  },
+
+  cardTitle: {
+    fontSize: 16,
+    fontFamily: "Poppins_600SemiBold",
     color: "#2D2A26",
   },
-  resultText: {
-    fontSize: 14,
-    color: "#4A4642",
-    marginTop: 4,
+
+  resultRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: 6,
   },
+
+  resultLabel: {
+    fontSize: 14,
+    fontFamily: "Poppins_500Medium",
+    color: "#6A655F",
+  },
+
+  resultValue: {
+    fontSize: 15,
+    fontFamily: "Poppins_600SemiBold",
+    color: "#2D2A26",
+  },
+
   adContainer: {
     marginTop: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

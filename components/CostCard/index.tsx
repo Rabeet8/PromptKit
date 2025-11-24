@@ -9,10 +9,14 @@ const CostCard: React.FC<CostCardProps> = ({
   yearlyCost = "—",
 }) => {
   return (
-    <View style={styles.costCard}>
-      <Text style={styles.costTitle}>{title}</Text>
-      <Text style={styles.costValue}>$ {monthlyCost}</Text>
+    <View style={styles.cardWrapper}>
+      <View style={styles.accentBar} />
 
+      <View style={styles.content}>
+        <Text style={styles.title}>{title}</Text>
+
+        <Text style={styles.mainValue}>${monthlyCost}</Text>
+      </View>
     </View>
   );
 };
@@ -20,28 +24,54 @@ const CostCard: React.FC<CostCardProps> = ({
 export default CostCard;
 
 const styles = StyleSheet.create({
-  costCard: {
+  cardWrapper: {
+    flexDirection: "row",
     backgroundColor: "#FFFFFF",
-    padding: 20,
-    borderRadius: 16,
-    marginTop: 8,
+    borderRadius: 18,
+    marginTop: 12,
+    padding: 18,
     shadowColor: "#000",
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
   },
-  costTitle: {
+
+  accentBar: {
+    width: 5,
+    borderRadius: 8,
+    backgroundColor: "#2D2A26",
+    marginRight: 14,
+  },
+
+  content: {
+    flex: 1,
+  },
+
+  title: {
     fontSize: 15,
-    fontWeight: "600",
+    fontFamily: "Poppins_600SemiBold",
     color: "#2D2A26",
+    marginBottom: 6,
   },
-  costValue: {
+
+  mainValue: {
     fontSize: 32,
-    fontWeight: "700",
+    fontFamily: "Poppins_700Bold",
     color: "#2D2A26",
-    marginVertical: 10,
+    marginBottom: 8,
+    marginTop: 2,
   },
-  costSub: {
+
+  subRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 6,
+  },
+
+  subValue: {
     fontSize: 14,
-    color: "#8C877F",
+    fontFamily: "Poppins_400Regular",
+    color: "#7A736C",
   },
 });

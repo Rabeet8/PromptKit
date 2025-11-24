@@ -1,6 +1,6 @@
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
 import Slider from "@react-native-community/slider";
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
 import { CacheSliderProps } from "../../types";
 
 const CacheSlider: React.FC<CacheSliderProps> = ({
@@ -14,17 +14,17 @@ const CacheSlider: React.FC<CacheSliderProps> = ({
   return (
     <View style={styles.card}>
       <Text style={styles.label}>
-        {label} ({value}%)
+        {label} <Text style={styles.valueText}>({value}%)</Text>
       </Text>
 
       <Slider
-        style={{ width: "100%", height: 40 }}
+        style={styles.slider}
         minimumValue={min}
         maximumValue={max}
         step={step}
         value={value}
         minimumTrackTintColor="#2D2A26"
-        maximumTrackTintColor="#D5D5D5"
+        maximumTrackTintColor="#CFCAC3"
         thumbTintColor="#2D2A26"
         onValueChange={onChange}
       />
@@ -37,19 +37,33 @@ export default CacheSlider;
 const styles = StyleSheet.create({
   card: {
     backgroundColor: "#FFFFFF",
-    padding: 18,
-    borderRadius: 16,
-    marginBottom: 18,
-    shadowColor: "#000",
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    marginTop: 20,
+    padding: 20,
+    borderRadius: 18,
+    marginBottom: 20,
+    marginTop: 16,
 
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
   },
+
   label: {
-    fontSize: 14,
-    fontWeight: "600",
+    fontSize: 15,
+    fontFamily: "Poppins_600SemiBold",
     color: "#2D2A26",
-    marginBottom: 10,
+    marginBottom: 12,
+  },
+
+  valueText: {
+    fontSize: 15,
+    fontFamily: "Poppins_500Medium",
+    color: "#7A736C",
+  },
+
+  slider: {
+    width: "100%",
+    height: 40,
   },
 });

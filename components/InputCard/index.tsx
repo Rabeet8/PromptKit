@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TextInput, StyleSheet } from "react-native";
+import { StyleSheet, Text, TextInput, View } from "react-native";
 import { InputCardProps } from "../../types";
 
 const InputCard: React.FC<InputCardProps> = ({
@@ -12,14 +12,17 @@ const InputCard: React.FC<InputCardProps> = ({
   return (
     <View style={styles.card}>
       <Text style={styles.label}>{label}</Text>
-      <TextInput
-        style={styles.input}
-        keyboardType={keyboardType}
-        value={value}
-        onChangeText={onChange}
-        placeholder={placeholder}
-        placeholderTextColor="#B7B7B7"
-      />
+
+      <View style={styles.inputWrapper}>
+        <TextInput
+          style={styles.input}
+          keyboardType={keyboardType}
+          value={value}
+          onChangeText={onChange}
+          placeholder={placeholder}
+          placeholderTextColor="#A8A39B"
+        />
+      </View>
     </View>
   );
 };
@@ -29,26 +32,39 @@ export default InputCard;
 const styles = StyleSheet.create({
   card: {
     backgroundColor: "#FFFFFF",
-    padding: 18,
-    borderRadius: 16,
+    padding: 15,
+    borderRadius: 18,
     shadowColor: "#000",
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#2D2A26",
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
+    marginTop: 18,
     marginBottom: 10,
   },
-  input: {
+
+  label: {
+    fontSize: 15,
+    fontFamily: "Poppins_600SemiBold",
+    color: "#2D2A26",
+    marginBottom: 10,
+    letterSpacing: 0.2,
+  },
+
+  inputWrapper: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#D5D5D5",
+    borderColor: "#E6DFD6",
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+  },
+
+  input: {
+    fontSize: 16,
+    fontFamily: "Poppins_500Medium",
+    color: "#2D2A26",
     paddingVertical: 10,
     paddingHorizontal: 12,
-    fontSize: 16,
-    color: "#2D2A26",
   },
 });

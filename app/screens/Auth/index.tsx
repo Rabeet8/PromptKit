@@ -1,20 +1,29 @@
+import { auth } from "@/config/firebase";
 import { useRouter } from "expo-router";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
+import { Eye, EyeOff, Lock, Mail } from "lucide-react-native";
 import React, { useState } from "react";
 import {
   Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/config/firebase";
 
 export default function AuthScreen() {
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -24,6 +33,7 @@ export default function AuthScreen() {
       return;
     }
     setLoading(true);
+
     try {
       if (mode === "login") {
         await signInWithEmailAndPassword(auth, email, password);
@@ -35,216 +45,281 @@ export default function AuthScreen() {
     } catch (error: any) {
       Alert.alert("Error", error.message);
     }
+
     setLoading(false);
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>PROMPT KIT</Text>
+    <KeyboardAvoidingView
+      style={styles.wrapper}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
 
-      <View style={styles.segmentWrapper}>
-        <TouchableOpacity
-          onPress={() => setMode("login")}
-          style={[
-            styles.segment,
-            mode === "login" && styles.segmentActive,
-          ]}
-        >
-          <Text
+        {/* HEADER */}
+        <View style={styles.headerBlock}>
+          <Text style={styles.title}>PromptKit</Text>
+          <Text style={styles.subtitle}>Your AI developer toolkit — simplified.</Text>
+        </View>
+
+        {/* SEGMENT SWITCH */}
+        <View style={styles.segmentWrapper}>
+          <Pressable
+            onPress={() => setMode("login")}
             style={[
-              styles.segmentText,
-              mode === "login" && styles.segmentTextActive,
+              styles.segment,
+              mode === "login" && styles.segmentActive,
             ]}
           >
-            Log In
-          </Text>
-        </TouchableOpacity>
+            <Text
+              style={[
+                styles.segmentText,
+                mode === "login" && styles.segmentTextActive,
+              ]}
+            >
+              Log In
+            </Text>
+          </Pressable>
 
-        <TouchableOpacity
-          onPress={() => setMode("signup")}
-          style={[
-            styles.segment,
-            mode === "signup" && styles.segmentActive,
-          ]}
-        >
-          <Text
+          <Pressable
+            onPress={() => setMode("signup")}
             style={[
-              styles.segmentText,
-              mode === "signup" && styles.segmentTextActive,
+              styles.segment,
+              mode === "signup" && styles.segmentActive,
             ]}
           >
-            Sign Up
-          </Text>
-        </TouchableOpacity>
-      </View>
+            <Text
+              style={[
+                styles.segmentText,
+                mode === "signup" && styles.segmentTextActive,
+              ]}
+            >
+              Sign Up
+            </Text>
+          </Pressable>
+        </View>
 
-      <View style={styles.card}>
-        <Text style={styles.label}>Email address</Text>
-        <TextInput
-          placeholder="user@example.com"
-          placeholderTextColor="#B7B7B7"
-          value={email}
-          onChangeText={setEmail}
-          style={styles.input}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
+        {/* CARD */}
+        <View style={styles.card}>
 
-        <Text style={styles.label}>Password</Text>
-        <TextInput
-          secureTextEntry
-          placeholder="••••••••••••"
-          placeholderTextColor="#B7B7B7"
-          value={password}
-          onChangeText={setPassword}
-          style={styles.input}
-        />
+          {/* EMAIL FIELD */}
+          <Text style={styles.label}>Email address</Text>
+          <View style={styles.inputWrapper}>
+            <Mail size={20} color="#8C877F" />
+            <TextInput
+              placeholder="user@example.com"
+              placeholderTextColor="#B7B7B7"
+              autoCapitalize="none"
+              keyboardType="email-address"
+              value={email}
+              onChangeText={setEmail}
+              style={styles.input}
+            />
+          </View>
 
-        {mode === "login" && (
-          <TouchableOpacity style={styles.forgotBtn} onPress={() => router.push("/screens/ResetPassword")}>
-            <Text style={styles.forgotText}>Forgot password?</Text>
-          </TouchableOpacity>
-        )}
+          {/* PASSWORD FIELD */}
+          <Text style={styles.label}>Password</Text>
 
-       <TouchableOpacity
-  style={[styles.primaryBtn, loading && styles.primaryBtnDisabled]}
-  onPress={handleAuth}
-  disabled={loading}
->
-  <Text style={styles.primaryBtnText}>
-    {loading ? "Loading..." : mode === "login" ? "Log In" : "Sign Up"}
-  </Text>
-</TouchableOpacity>
-      </View>
-    </View>
+          <View style={styles.inputWrapper}>
+            <Lock size={20} color="#8C877F" />
+
+            <TextInput
+              placeholder="•••••••••••"
+              placeholderTextColor="#B7B7B7"
+              secureTextEntry={!showPassword}
+              value={password}
+              onChangeText={setPassword}
+              style={styles.input}
+            />
+
+            <Pressable onPress={() => setShowPassword(!showPassword)} hitSlop={12}>
+              {showPassword ? (
+                <EyeOff size={20} color="#8C877F" />
+              ) : (
+                <Eye size={20} color="#8C877F" />
+              )}
+            </Pressable>
+          </View>
+
+          {/* FORGOT PASSWORD */}
+          {mode === "login" && (
+            <TouchableOpacity
+              style={styles.forgotBtn}
+              onPress={() => router.push("/screens/ResetPassword")}
+            >
+              <Text style={styles.forgotText}>Forgot password?</Text>
+            </TouchableOpacity>
+          )}
+
+          {/* PRIMARY BUTTON */}
+          <Pressable
+            onPress={handleAuth}
+            disabled={loading}
+            style={({ pressed }) => [
+              styles.primaryBtn,
+              loading && styles.primaryBtnDisabled,
+              { transform: [{ scale: pressed ? 0.97 : 1 }] },
+            ]}
+          >
+            <Text style={styles.primaryBtnText}>
+              {loading ? "Loading..." : mode === "login" ? "Log In" : "Sign Up"}
+            </Text>
+          </Pressable>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  wrapper: {
     flex: 1,
-    padding: 30,
     backgroundColor: "#FAF7F2",
   },
 
+  scrollContent: {
+    padding: 28,
+    paddingBottom: 80,
+  },
+
+  /* HEADER */
+  headerBlock: {
+    marginTop: 60,
+    marginBottom: 25,
+    alignItems: "center",
+  },
+
   title: {
-    marginTop: 50,
-    fontSize: 26,
-    fontWeight: "700",
-    letterSpacing: 1.5,
-    textAlign: "center",
+    fontSize: 36,
+    fontFamily: "Poppins_700Bold",
     color: "#2D2A26",
   },
 
-  /* Segmented Control */
+  subtitle: {
+    fontSize: 14,
+    fontFamily: "Poppins_500Medium",
+    color: "#7A746D",
+    marginTop: 4,
+    letterSpacing: 0.2,
+  },
+
+  /* SEGMENT */
   segmentWrapper: {
     flexDirection: "row",
-    marginTop: 35,
-    marginBottom: 20,
-    backgroundColor: "#F1EFEA",   // Inactive background
-    borderRadius: 12,
-    padding: 4,
+    backgroundColor: "#EEE8E0",
+    borderRadius: 16,
+    padding: 5,
+    marginBottom: 28,
   },
 
   segment: {
     flex: 1,
-    paddingVertical: 10,
-    borderRadius: 10,
+    paddingVertical: 12,
+    borderRadius: 12,
   },
 
   segmentActive: {
-    backgroundColor: "#E6DED4",  // Active background
+    backgroundColor: "#2D2A26",
   },
 
   segmentText: {
     textAlign: "center",
     fontSize: 16,
-    color: "#8C877F",  // Inactive text
+    fontFamily: "Poppins_500Medium",
+    color: "#8C877F",
   },
 
   segmentTextActive: {
-    fontWeight: "600",
-    color: "#2D2A26",  // Active text
+    color: "#FFFFFF",
+    fontFamily: "Poppins_600SemiBold",
   },
 
-  /* Card */
+  /* CARD */
   card: {
-    marginTop: 15,
-    backgroundColor: "#FAF7F2",
-    padding: 25,
-    borderRadius: 18,
+    backgroundColor: "#FFFFFF",
+    padding: 28,
+    borderRadius: 22,
+
     shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
+    shadowOpacity: 0.07,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+
+    elevation: 3,
   },
 
   label: {
     fontSize: 14,
+    fontFamily: "Poppins_600SemiBold",
     color: "#2D2A26",
+    marginTop: 14,
     marginBottom: 6,
-    marginTop: 10,
+  },
+
+  /* INPUT FIELD */
+  inputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F9F6F2",
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#E6E2DD",
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    gap: 10,
+    marginBottom: 10,
+
+    shadowColor: "#000",
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
   },
 
   input: {
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: "#D5D5D5",
-    padding: 12,
-    borderRadius: 10,
-    fontSize: 15,
+    flex: 1,
+    fontSize: 15.5,
+    fontFamily: "Poppins_500Medium",
     color: "#2D2A26",
+    paddingRight: 6,
   },
 
   forgotBtn: {
-    marginTop: 8,
+    marginTop: 4,
     alignSelf: "flex-end",
   },
 
   forgotText: {
-    color: "#9A9A9A",
     fontSize: 13,
+    fontFamily: "Poppins_500Medium",
+    color: "#7A746D",
   },
 
+  /* BUTTON */
   primaryBtn: {
     backgroundColor: "#2D2A26",
-    marginTop: 20,
-    padding: 14,
-    borderRadius: 12,
+    marginTop: 26,
+    paddingVertical: 16,
+    borderRadius: 14,
+
+    shadowColor: "#000",
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
   },
 
   primaryBtnDisabled: {
-    backgroundColor: "#CCC",
+    opacity: 0.6,
   },
 
   primaryBtnText: {
-    color: "white",
+    color: "#FFFFFF",
     fontSize: 16,
     textAlign: "center",
-    fontWeight: "600",
-  },
-
-  orText: {
-    textAlign: "center",
-    marginVertical: 20,
-    color: "#9A9A9A",
-  },
-
-  socialWrapper: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-
-  socialBtn: {
-    flex: 1,
-    backgroundColor: "#E9E9E9",
-    padding: 12,
-    marginHorizontal: 6,
-    borderRadius: 10,
-  },
-
-  socialText: {
-    textAlign: "center",
-    color: "#2D2A26",
-    fontWeight: "500",
+    fontFamily: "Poppins_600SemiBold",
+    letterSpacing: 0.3,
   },
 });

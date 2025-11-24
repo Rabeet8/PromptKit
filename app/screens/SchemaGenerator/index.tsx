@@ -1,26 +1,38 @@
-import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Platform, ScrollView, StyleSheet, Text, ToastAndroid, TouchableOpacity, View } from "react-native";
+import {
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  ToastAndroid,
+  TouchableOpacity,
+  View,
+} from "react-native";
+
+import { ClipboardCopy, FileJson } from "lucide-react-native";
 
 import PrimaryButton from "@/components/Button.tsx";
 import DescriptionInput from "@/components/DescriptionCard.tsx";
 import Header from "@/components/Header";
 
 import { SchemaAPI } from "@/api/schema";
-import { trackServiceUsage } from "@/utils/usageTracker";
 import { AdMobBannerAd } from "@/components/AdMobBanner";
-import { logInferenceStart, logInferenceSuccess, logInferenceError } from "@/utils/inferenceLogger";
+import { trackServiceUsage } from "@/utils/usageTracker";
+
+import {
+  logInferenceError,
+  logInferenceStart,
+  logInferenceSuccess,
+} from "@/utils/inferenceLogger";
 
 export default function SchemaGenerator() {
   const router = useRouter();
-
   const [description, setDescription] = useState("");
   const [schema, setSchema] = useState("");
   const [validExample, setValidExample] = useState("");
   const [invalidExample, setInvalidExample] = useState("");
-
   const [loading, setLoading] = useState(false);
 
   const copy = async (text: string) => {
@@ -37,119 +49,86 @@ export default function SchemaGenerator() {
   const handleGenerate = async () => {
     if (!description.trim()) return;
 
-    const requestData = {
-      description: description,
-    };
+    const requestData = { description };
 
     const startTime = logInferenceStart("schemaGenerator", requestData);
 
     try {
       setLoading(true);
-
       const res = await SchemaAPI.generateSchema(requestData);
 
       setSchema(JSON.stringify(res.schema, null, 2));
       setValidExample(JSON.stringify(res.valid_example, null, 2));
       setInvalidExample(JSON.stringify(res.invalid_example, null, 2));
 
-      // Track usage
       await trackServiceUsage("schemaGenerator");
-
-      // Log successful inference
       await logInferenceSuccess("schemaGenerator", requestData, res, startTime);
-
     } catch (err) {
-      console.log("Schema Error:", err);
-      // Log failed inference
       await logInferenceError("schemaGenerator", requestData, err, startTime);
     } finally {
       setLoading(false);
     }
   };
 
+  const renderCard = (title: string, text: string) => (
+    <View style={styles.outputCard}>
+      <View style={styles.outputHeader}>
+        <View style={styles.outputTitleRow}>
+          <FileJson size={20} color="#2D2A26" />
+          <Text style={styles.outputTitle}>{title}</Text>
+        </View>
+
+        <TouchableOpacity onPress={() => copy(text)}>
+          <ClipboardCopy size={20} color="#2D2A26" strokeWidth={2} />
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView
+        style={styles.jsonContainer}
+        nestedScrollEnabled
+        horizontal={false}
+      >
+        <ScrollView horizontal>
+          <Text style={styles.outputText}>{text}</Text>
+        </ScrollView>
+      </ScrollView>
+    </View>
+  );
+
   return (
     <View style={styles.screen}>
-      <Header title="Schema Generator" onBack={() => router.back()} onSettingsPress={() => {}} />
+      <Header title="Schema Generator" onBack={() => router.back()} />
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 90, paddingTop: 20 }}>
-
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 90, paddingTop: 25 }}
+      >
+        {/* LABEL */}
         <Text style={styles.label}>Enter your text</Text>
 
         <DescriptionInput
           value={description}
           onChangeText={setDescription}
-          placeholder="Enter your text to generate schema"
+          placeholder="Describe your data structure and I will generate a JSON schema for you..."
         />
 
-        <PrimaryButton label={loading ? "Generating..." : "Generate Schema"} onPress={handleGenerate} />
+        <PrimaryButton
+          label={loading ? "Generating..." : "Generate Schema"}
+          onPress={handleGenerate}
+          disabled={loading}
+        />
 
+        {/* OUTPUT CARDS */}
         {schema !== "" && (
           <>
-            {/* JSON SCHEMA */}
-            <View style={styles.outputCard}>
-              <View style={styles.outputHeader}>
-                <Text style={styles.outputTitle}>JSON Schema</Text>
-                <TouchableOpacity onPress={() => copy(schema)}>
-                  <Ionicons name="copy-outline" size={22} color="#2D2A26" />
-                </TouchableOpacity>
-              </View>
-
-              <ScrollView
-                style={styles.jsonContainer}
-                horizontal={false}
-                nestedScrollEnabled
-              >
-                <ScrollView horizontal>
-                  <Text style={styles.outputText}>{schema}</Text>
-                </ScrollView>
-              </ScrollView>
-            </View>
-
-            {/* VALID EXAMPLE */}
-            <View style={styles.outputCard}>
-              <View style={styles.outputHeader}>
-                <Text style={styles.outputTitle}>Valid Example</Text>
-                <TouchableOpacity onPress={() => copy(validExample)}>
-                  <Ionicons name="copy-outline" size={22} color="#2D2A26" />
-                </TouchableOpacity>
-              </View>
-
-              <ScrollView
-                style={styles.jsonContainer}
-                horizontal={false}
-                nestedScrollEnabled
-              >
-                <ScrollView horizontal>
-                  <Text style={styles.outputText}>{validExample}</Text>
-                </ScrollView>
-              </ScrollView>
-            </View>
-
-            {/* INVALID EXAMPLE */}
-            <View style={styles.outputCard}>
-              <View style={styles.outputHeader}>
-                <Text style={styles.outputTitle}>Invalid Example</Text>
-                <TouchableOpacity onPress={() => copy(invalidExample)}>
-                  <Ionicons name="copy-outline" size={22} color="#2D2A26" />
-                </TouchableOpacity>
-              </View>
-
-              <ScrollView
-                style={styles.jsonContainer}
-                horizontal={false}
-                nestedScrollEnabled
-              >
-                <ScrollView horizontal>
-                  <Text style={styles.outputText}>{invalidExample}</Text>
-                </ScrollView>
-              </ScrollView>
-            </View>
+            {renderCard("JSON Schema", schema)}
+            {renderCard("Valid Example", validExample)}
+            {renderCard("Invalid Example", invalidExample)}
           </>
         )}
-
       </ScrollView>
 
-      {/* AdSense Ad */}
+      {/* Ad */}
       <View style={styles.adContainer}>
         <AdMobBannerAd size="banner" />
       </View>
@@ -165,52 +144,64 @@ const styles = StyleSheet.create({
   },
 
   label: {
-    fontSize: 14,
-    fontWeight: "600",
+    fontSize: 15,
+    fontFamily: "Poppins_600SemiBold",
     color: "#2D2A26",
+    marginBottom: 12,
   },
 
+  /* OUTPUT CARDS */
   outputCard: {
     backgroundColor: "#FFFFFF",
-    padding: 18,
-    borderRadius: 16,
-    marginTop: 20,
+    padding: 20,
+    borderRadius: 18,
+    marginTop: 26,
+
     shadowColor: "#000",
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
   },
 
   outputHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 10,
+    alignItems: "center",
+    marginBottom: 14,
+  },
+
+  outputTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
 
   outputTitle: {
     fontSize: 16,
-    fontWeight: "700",
+    fontFamily: "Poppins_600SemiBold",
     color: "#2D2A26",
   },
 
   jsonContainer: {
-    maxHeight: 220,
-    minHeight: 220,
+    maxHeight: 230,
+    minHeight: 230,
     borderWidth: 1,
     borderColor: "#E6E2DC",
-    borderRadius: 10,
-    padding: 10,
-    backgroundColor: "#FAFAFA",
+    borderRadius: 12,
+    padding: 12,
+    backgroundColor: "#FBFAF8",
   },
 
   outputText: {
-    fontFamily: "monospace",
     fontSize: 13,
+    fontFamily: "monospace",
     color: "#2D2A26",
-    lineHeight: 18,
+    lineHeight: 20,
   },
+
   adContainer: {
-    marginTop: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
+    marginTop: 14,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
