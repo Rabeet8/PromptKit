@@ -1,6 +1,11 @@
 import { Stack } from "expo-router";
+import { useEffect } from "react";
 
 export default function RootLayout() {
+  useEffect(() => {
+    // AdMob setup is handled in individual components
+  }, []);
+
   return (
     <Stack screenOptions={{ headerShown: false }}>
       {/* <Stack.Screen name="index" /> */}

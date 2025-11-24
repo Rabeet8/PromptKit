@@ -19,7 +19,8 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "config": {}
     },
     "web": {
       "output": "static",
@@ -28,9 +29,11 @@
     "plugins": [
       "expo-router",
       [
-        "expo-ads-admob",
+        "react-native-google-mobile-ads",
         {
-          "userTrackingPermission": "This app uses ads to provide free services."
+          "androidAppId": "ca-app-pub-1098479655653377~5020226105",
+          "iosAppId": "ca-app-pub-1098479655653377~1711660194",
+          "userTrackingUsageDescription": "This app uses ads to provide free services."
         }
       ],
       [
