@@ -3,11 +3,12 @@ import { SplashScreen, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 
+import { AuthProvider } from "@/contexts/AuthContext";
 import {
-  Poppins_400Regular,
-  Poppins_500Medium,
-  Poppins_600SemiBold,
-  Poppins_700Bold,
+    Poppins_400Regular,
+    Poppins_500Medium,
+    Poppins_600SemiBold,
+    Poppins_700Bold,
 } from "@expo-google-fonts/poppins";
 
 // Prevent splash auto-hide until fonts are loaded
@@ -30,7 +31,7 @@ export default function RootLayout() {
   if (!fontsLoaded) return null; // keeps splash visible
 
   return (
-    <>
+    <AuthProvider>
       <StatusBar style="dark" backgroundColor="#FAF7F2" />
 
       <Stack
@@ -53,6 +54,6 @@ export default function RootLayout() {
         {/* If you have tabs */}
         <Stack.Screen name="(tabs)" />
       </Stack>
-    </>
+    </AuthProvider>
   );
 }

@@ -3,13 +3,13 @@ import { getAuth } from 'firebase/auth';
 import { getDatabase } from 'firebase/database';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBdFJRnASzSwNrERZFmSGw0YY9t1t2fxBI",
-  authDomain: "boostpro-c526d.firebaseapp.com",
-  databaseURL: "https://boostpro-c526d-default-rtdb.firebaseio.com",
-  projectId: "boostpro-c526d",
-  storageBucket: "boostpro-c526d.firebasestorage.app",
-  messagingSenderId: "218686343827",
-  appId: "1:218686343827:web:10bcdeec9939b0d89a9b66"
+  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  databaseURL: process.env.EXPO_PUBLIC_FIREBASE_DATABASE_URL,
+  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID
 };
 
 const app = initializeApp(firebaseConfig);

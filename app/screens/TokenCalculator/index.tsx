@@ -12,9 +12,9 @@ import ModelDropdown from "@/components/modelDropdown";
 import { TokenizeAPI } from "@/api/tokenize";
 import { AdMobBannerAd } from "@/components/AdMobBanner";
 import {
-  logInferenceError,
-  logInferenceStart,
-  logInferenceSuccess,
+    logInferenceError,
+    logInferenceStart,
+    logInferenceSuccess,
 } from "@/utils/inferenceLogger";
 import { trackServiceUsage } from "@/utils/usageTracker";
 
@@ -50,11 +50,21 @@ export default function TokenCalculatorScreen() {
     if (!description.trim()) return alert("Please enter text to tokenize.");
 
     const requestData = { model: selectedModel, text: description };
+    console.log("📤 Tokenize Request:", requestData);
+    
     const startTime = logInferenceStart("tokenCalculator", requestData);
 
     try {
       setLoading(true);
       const res = await TokenizeAPI.tokenize(requestData);
+      
+      // 🔍 LOG THE API RESULT
+      console.log("✅ Tokenize API Result:", {
+        tokens: res.tokens,
+        characters: res.characters,
+        approx: res.approx,
+        fullResponse: res
+      });
 
       setTokenCount(res.tokens);
       setCharacterCount(res.characters);
@@ -63,6 +73,7 @@ export default function TokenCalculatorScreen() {
       await trackServiceUsage("tokenCalculator");
       await logInferenceSuccess("tokenCalculator", requestData, res, startTime);
     } catch (err) {
+      console.error("❌ Tokenize API Error:", err);
       await logInferenceError("tokenCalculator", requestData, err, startTime);
     } finally {
       setLoading(false);

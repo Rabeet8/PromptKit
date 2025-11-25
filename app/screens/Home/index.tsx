@@ -3,46 +3,63 @@ import Dev1Image from "@/assets/images/Rabeet.jpg";
 import DeveloperCard from "@/components/DeveloperCard";
 
 import { AdMobBannerAd } from "@/components/AdMobBanner";
-import { auth } from "@/config/firebase";
+import { auth, database } from "@/config/firebase";
+import { useAuth } from "@/contexts/AuthContext";
 import { DeveloperInfo } from "@/types";
 
 import {
-  BadgeDollarSign,
-  Blocks,
-  ListChecks,
-  LogOut,
-  ScanText,
-  UserRound
+    BadgeDollarSign,
+    Blocks,
+    ListChecks,
+    LogOut,
+    ScanText,
+    UserRound
 } from "lucide-react-native";
 
 import { useRouter } from "expo-router";
-import { onAuthStateChanged, signOut } from "firebase/auth";
-import { useEffect } from "react";
+import { get, ref } from "firebase/database";
+import { useEffect, useState } from "react";
 import {
-  Alert,
-  Pressable,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Alert,
+    Pressable,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { signOut } = useAuth();
+  const [firstName, setFirstName] = useState<string>("Genius");
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (!user) router.replace("/screens/Auth");
-    });
-    return unsubscribe;
+    const fetchUserName = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      try {
+        const snapshot = await get(ref(database, `users/${user.uid}`));
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          if (data.firstName) {
+            setFirstName(data.firstName);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch user name:", error);
+        // Keep default "Genius" if fetch fails
+      }
+    };
+
+    fetchUserName();
   }, []);
 
   const handleLogout = async () => {
     try {
-      await signOut(auth);
-      router.replace("/screens/Auth");
+      await signOut();
     } catch (error: any) {
       Alert.alert("Error", error.message);
     }
@@ -101,7 +118,7 @@ export default function HomeScreen() {
 
           {/* Greeting */}
           <Text style={styles.greeting}>
-            Hello Genius,{"\n"}
+            Hello {firstName},{"\n"}
             <Text style={styles.greetingSub}>How can I help you today?</Text>
           </Text>
 

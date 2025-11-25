@@ -1,7 +1,20 @@
 import axios from "axios";
 
+const baseURL = process.env.EXPO_PUBLIC_API_BASE_URL;
+
+// Debug: Log the base URL to verify it's being loaded
+console.log("🔍 API Base URL from env:", baseURL);
+console.log("🔍 All EXPO_PUBLIC_ vars:", Object.keys(process.env).filter(key => key.startsWith('EXPO_PUBLIC_')));
+
+if (!baseURL) {
+  console.error("❌ EXPO_PUBLIC_API_BASE_URL is not defined!");
+  throw new Error(
+    "EXPO_PUBLIC_API_BASE_URL is not defined in environment variables. Please check your .env file."
+  );
+}
+
 const apiClient = axios.create({
-  baseURL: "https://d2f6c380b656.ngrok-free.app",  // <-- your main backend
+  baseURL,
   timeout: 15000,
   headers: {
     "Content-Type": "application/json",
@@ -12,6 +25,10 @@ const apiClient = axios.create({
 // OPTIONAL: attach token to headers dynamically
 apiClient.interceptors.request.use(
   async (config) => {
+    // Debug: Log the full URL being called
+    const fullURL = `${config.baseURL}${config.url}`;
+    console.log("🌐 API Request:", config.method?.toUpperCase(), fullURL);
+
     // If you store token in async storage:
     // const token = await AsyncStorage.getItem("token");
 

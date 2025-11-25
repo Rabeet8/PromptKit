@@ -4,14 +4,14 @@ import { useRouter } from "expo-router";
 import { get, ref, set } from "firebase/database";
 import { useCallback, useEffect, useState } from "react";
 import {
-  Alert,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 import PrimaryButton from "@/components/Button.tsx";
@@ -117,7 +117,34 @@ export default function ProfileScreen() {
   if (initialLoading) {
     return (
       <View style={styles.screen}>
-        <Text style={{ fontFamily: "Poppins_500Medium" }}>Loading...</Text>
+        <View style={styles.loadingContainer}>
+          {/* Header Skeleton */}
+          <View style={styles.loadingHeader}>
+            <View style={styles.skeletonCircle} />
+            <View style={{ flex: 1 }}>
+              <View style={[styles.skeletonLine, { width: '60%', marginBottom: 8 }]} />
+              <View style={[styles.skeletonLine, { width: '40%', height: 12 }]} />
+            </View>
+          </View>
+
+          {/* Content Skeletons */}
+          <View style={styles.loadingContent}>
+            <View style={[styles.skeletonBox, { height: 60, marginBottom: 16 }]} />
+            <View style={[styles.skeletonBox, { height: 60, marginBottom: 16 }]} />
+            <View style={[styles.skeletonBox, { height: 100, marginBottom: 16 }]} />
+            <View style={[styles.skeletonBox, { height: 80 }]} />
+          </View>
+
+          {/* Loading Text */}
+          <View style={styles.loadingTextContainer}>
+            <Text style={styles.loadingText}>Loading your profile</Text>
+            <View style={styles.dotsContainer}>
+              <View style={[styles.dot, styles.dot1]} />
+              <View style={[styles.dot, styles.dot2]} />
+              <View style={[styles.dot, styles.dot3]} />
+            </View>
+          </View>
+        </View>
       </View>
     );
   }
@@ -337,5 +364,78 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: "Poppins_600SemiBold",
     color: "#007AFF",
+  },
+
+  // Loading Screen Styles
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    paddingHorizontal: 20,
+  },
+
+  loadingHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+    marginBottom: 40,
+    paddingTop: 60,
+  },
+
+  skeletonCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#E7E2DC",
+  },
+
+  skeletonLine: {
+    height: 16,
+    backgroundColor: "#E7E2DC",
+    borderRadius: 8,
+  },
+
+  loadingContent: {
+    marginTop: 20,
+  },
+
+  skeletonBox: {
+    backgroundColor: "#E7E2DC",
+    borderRadius: 16,
+  },
+
+  loadingTextContainer: {
+    alignItems: "center",
+    marginTop: 60,
+  },
+
+  loadingText: {
+    fontSize: 18,
+    fontFamily: "Poppins_600SemiBold",
+    color: "#2D2A26",
+    marginBottom: 16,
+  },
+
+  dotsContainer: {
+    flexDirection: "row",
+    gap: 8,
+  },
+
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#2D2A26",
+  },
+
+  dot1: {
+    opacity: 0.3,
+  },
+
+  dot2: {
+    opacity: 0.6,
+  },
+
+  dot3: {
+    opacity: 1,
   },
 });
