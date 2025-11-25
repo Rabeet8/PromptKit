@@ -2,7 +2,7 @@ import { auth, database } from "@/config/firebase";
 import { getAllServiceUsage } from "@/utils/usageTracker";
 import { useRouter } from "expo-router";
 import { get, ref, set } from "firebase/database";
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Alert,
   RefreshControl,
@@ -78,32 +78,41 @@ export default function ProfileScreen() {
     setRefreshing(false);
   }, [loadProfile]);
 
-  const handleSave = async () => {
-    if (!firstName || !lastName || !userType || !experience) {
-      Alert.alert("Error", "Please fill in all required fields.");
-      return;
-    }
-    const user = auth.currentUser;
-    if (!user) {
-      Alert.alert("Error", "User not authenticated.");
-      return;
-    }
-    setLoading(true);
-    try {
-      await set(ref(database, `users/${user.uid}`), {
-        firstName,
-        lastName,
-        userType,
-        experience,
-        description,
-        email: user.email,
-      });
-      Alert.alert("Success", "Profile updated successfully.");
-    } catch (error: any) {
-      Alert.alert("Error", error.message);
-    }
-    setLoading(false);
-  };
+ const handleSave = async () => {
+  if (!firstName || !lastName || !userType || !experience) {
+    Alert.alert("Error", "Please fill in all required fields.");
+    return;
+  }
+
+  const user = auth.currentUser;
+  if (!user) {
+    Alert.alert("Error", "User not authenticated.");
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    await set(ref(database, `users/${user.uid}`), {
+      firstName,
+      lastName,
+      userType,
+      experience,
+      description,
+      email: user.email,
+    });
+
+    Alert.alert("Success", "Profile updated successfully.");
+
+    router.replace("/screens/Home");
+
+  } catch (error: any) {
+    Alert.alert("Error", error.message);
+  }
+
+  setLoading(false);
+};
+
 
   if (initialLoading) {
     return (

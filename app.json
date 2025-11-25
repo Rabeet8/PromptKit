@@ -20,7 +20,8 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "config": {}
+      "config": {},
+      "package": "com.rabeet8.PromptKit"
     },
     "web": {
       "output": "static",
@@ -53,6 +54,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "52f9ce52-6b28-4503-9d9f-6c078751e6a1"
+      }
     }
   }
 }

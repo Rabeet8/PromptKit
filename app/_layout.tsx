@@ -10,7 +10,7 @@ import {
   Poppins_700Bold,
 } from "@expo-google-fonts/poppins";
 
-// Prevent auto-hide until fonts are loaded
+// Prevent splash auto-hide until fonts are loaded
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -27,7 +27,7 @@ export default function RootLayout() {
     }
   }, [fontsLoaded]);
 
-  if (!fontsLoaded) return null; // keep splash until fonts ready
+  if (!fontsLoaded) return null; // keeps splash visible
 
   return (
     <>
@@ -40,14 +40,18 @@ export default function RootLayout() {
           gestureEnabled: true,
         }}
       >
-        <Stack.Screen name="screens/Auth/index" />
-        <Stack.Screen name="screens/Home/index" />
-        <Stack.Screen name="screens/UserInfo/index" />
-        <Stack.Screen name="screens/TokenCalculator/index" />
-        <Stack.Screen name="screens/PromptLinter/index" />
-        <Stack.Screen name="screens/SchemaGenerator/index" />
-        <Stack.Screen name="screens/LLMCostCalculator/index" />
-        <Stack.Screen name="screens/ResetPassword/index" />
+        {/* Correct screen paths — index.tsx auto-detected */}
+        <Stack.Screen name="screens/Auth" />
+        <Stack.Screen name="screens/Home" />
+        <Stack.Screen name="screens/UserInfo" />
+        <Stack.Screen name="screens/TokenCalculator" />
+        <Stack.Screen name="screens/PromptLinter" />
+        <Stack.Screen name="screens/SchemaGenerator" />
+        <Stack.Screen name="screens/LLMCostCalculator" />
+        <Stack.Screen name="screens/ResetPassword" />
+
+        {/* If you have tabs */}
+        <Stack.Screen name="(tabs)" />
       </Stack>
     </>
   );

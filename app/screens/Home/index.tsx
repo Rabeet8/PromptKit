@@ -17,7 +17,7 @@ import {
 
 import { useRouter } from "expo-router";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import {
   Alert,
   Pressable,
@@ -70,7 +70,7 @@ export default function HomeScreen() {
     {
       id: 1,
       name: "Syed Rabeet",
-      title: "SE / Copy-Paste Legend",
+      title: "Software Engineer",
       image: Dev1Image,
       socials: {
         github: "https://github.com/Rabeet8",
@@ -80,7 +80,7 @@ export default function HomeScreen() {
     {
       id: 2,
       name: "Huzaifa Ghori",
-      title: "SE / Don’t Know JS",
+      title: "Software Engineer",
       image: Dev2Image,
       socials: {
         github: "https://github.com/Huzaifa1910/",

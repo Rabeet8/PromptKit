@@ -5,7 +5,7 @@ import {
   signInWithEmailAndPassword,
 } from "firebase/auth";
 import { Eye, EyeOff, Lock, Mail } from "lucide-react-native";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -59,21 +59,18 @@ export default function AuthScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-
-        {/* HEADER */}
         <View style={styles.headerBlock}>
-          <Text style={styles.title}>PromptKit</Text>
-          <Text style={styles.subtitle}>Your AI developer toolkit — simplified.</Text>
-        </View>
+            <Text style={styles.title}>PromptKit</Text>
+            <Text style={styles.subtitle}>
+              Your AI toolkit — beautifully simple.
+            </Text>
+          </View>
 
         {/* SEGMENT SWITCH */}
         <View style={styles.segmentWrapper}>
           <Pressable
             onPress={() => setMode("login")}
-            style={[
-              styles.segment,
-              mode === "login" && styles.segmentActive,
-            ]}
+            style={[styles.segment, mode === "login" && styles.segmentActive]}
           >
             <Text
               style={[
@@ -87,10 +84,7 @@ export default function AuthScreen() {
 
           <Pressable
             onPress={() => setMode("signup")}
-            style={[
-              styles.segment,
-              mode === "signup" && styles.segmentActive,
-            ]}
+            style={[styles.segment, mode === "signup" && styles.segmentActive]}
           >
             <Text
               style={[
@@ -105,13 +99,12 @@ export default function AuthScreen() {
 
         {/* CARD */}
         <View style={styles.card}>
-
           {/* EMAIL FIELD */}
-          <Text style={styles.label}>Email address</Text>
+          <Text style={styles.label}>Email</Text>
           <View style={styles.inputWrapper}>
             <Mail size={20} color="#8C877F" />
             <TextInput
-              placeholder="user@example.com"
+              placeholder="you@example.com"
               placeholderTextColor="#B7B7B7"
               autoCapitalize="none"
               keyboardType="email-address"
@@ -128,7 +121,7 @@ export default function AuthScreen() {
             <Lock size={20} color="#8C877F" />
 
             <TextInput
-              placeholder="•••••••••••"
+              placeholder="••••••••••"
               placeholderTextColor="#B7B7B7"
               secureTextEntry={!showPassword}
               value={password}
@@ -136,7 +129,7 @@ export default function AuthScreen() {
               style={styles.input}
             />
 
-            <Pressable onPress={() => setShowPassword(!showPassword)} hitSlop={12}>
+            <Pressable onPress={() => setShowPassword(!showPassword)}>
               {showPassword ? (
                 <EyeOff size={20} color="#8C877F" />
               ) : (
@@ -155,14 +148,14 @@ export default function AuthScreen() {
             </TouchableOpacity>
           )}
 
-          {/* PRIMARY BUTTON */}
+          {/* BUTTON */}
           <Pressable
             onPress={handleAuth}
             disabled={loading}
             style={({ pressed }) => [
               styles.primaryBtn,
               loading && styles.primaryBtnDisabled,
-              { transform: [{ scale: pressed ? 0.97 : 1 }] },
+              { transform: [{ scale: pressed ? 0.96 : 1 }] },
             ]}
           >
             <Text style={styles.primaryBtnText}>
@@ -182,53 +175,56 @@ const styles = StyleSheet.create({
   },
 
   scrollContent: {
-    padding: 28,
-    paddingBottom: 80,
+    padding: 22,
+    paddingBottom: 60,
   },
 
   /* HEADER */
   headerBlock: {
-    marginTop: 60,
-    marginBottom: 25,
+    marginTop: 30,
+    marginBottom: 20,
     alignItems: "center",
   },
 
+ 
+
   title: {
-    fontSize: 36,
+    fontSize: 32,
     fontFamily: "Poppins_700Bold",
-    color: "#2D2A26",
+    textAlign: "center",
+    color: "#2B2A28",
   },
 
   subtitle: {
     fontSize: 14,
     fontFamily: "Poppins_500Medium",
     color: "#7A746D",
-    marginTop: 4,
-    letterSpacing: 0.2,
+    textAlign: "center",
+    marginTop: 3,
   },
 
   /* SEGMENT */
   segmentWrapper: {
     flexDirection: "row",
     backgroundColor: "#EEE8E0",
-    borderRadius: 16,
+    borderRadius: 14,
     padding: 5,
-    marginBottom: 28,
+    marginBottom: 22,
   },
 
   segment: {
     flex: 1,
-    paddingVertical: 12,
-    borderRadius: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
   },
 
   segmentActive: {
-    backgroundColor: "#2D2A26",
+    backgroundColor: "#2B2A28",
   },
 
   segmentText: {
     textAlign: "center",
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: "Poppins_500Medium",
     color: "#8C877F",
   },
@@ -241,23 +237,23 @@ const styles = StyleSheet.create({
   /* CARD */
   card: {
     backgroundColor: "#FFFFFF",
-    padding: 28,
-    borderRadius: 22,
+    padding: 22,
+    borderRadius: 20,
 
     shadowColor: "#000",
-    shadowOpacity: 0.07,
-    shadowRadius: 12,
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
 
-    elevation: 3,
+    elevation: 2,
   },
 
   label: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: "Poppins_600SemiBold",
-    color: "#2D2A26",
-    marginTop: 14,
-    marginBottom: 6,
+    color: "#2B2A28",
+    marginTop: 12,
+    marginBottom: 5,
   },
 
   /* INPUT FIELD */
@@ -265,30 +261,24 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#F9F6F2",
-    borderRadius: 14,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#E6E2DD",
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    gap: 10,
+    borderColor: "#E4E0DB",
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     marginBottom: 10,
-
-    shadowColor: "#000",
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
   },
 
   input: {
     flex: 1,
-    fontSize: 15.5,
+    fontSize: 15,
     fontFamily: "Poppins_500Medium",
-    color: "#2D2A26",
+    color: "#2B2A28",
     paddingRight: 6,
   },
 
   forgotBtn: {
-    marginTop: 4,
+    marginTop: 3,
     alignSelf: "flex-end",
   },
 
@@ -300,15 +290,14 @@ const styles = StyleSheet.create({
 
   /* BUTTON */
   primaryBtn: {
-    backgroundColor: "#2D2A26",
-    marginTop: 26,
-    paddingVertical: 16,
-    borderRadius: 14,
-
+    backgroundColor: "#2B2A28",
+    marginTop: 22,
+    paddingVertical: 14,
+    borderRadius: 12,
     shadowColor: "#000",
-    shadowOpacity: 0.12,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 3 },
   },
 
   primaryBtnDisabled: {
@@ -320,6 +309,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "center",
     fontFamily: "Poppins_600SemiBold",
-    letterSpacing: 0.3,
   },
 });
