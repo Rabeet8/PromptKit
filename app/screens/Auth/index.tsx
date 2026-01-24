@@ -1,13 +1,15 @@
+import CustomAlert from "@/components/CustomAlert";
 import { auth } from "@/config/firebase";
 import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
 } from "firebase/auth";
-import { Eye, EyeOff, Lock, Mail } from "lucide-react-native";
+import { Eye, EyeOff, Lock, UserPlus } from "lucide-react-native";
 import { useState } from "react";
 import {
-  Alert,
+  Dimensions,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -18,6 +20,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import Svg, { Path } from "react-native-svg";
+
+const { width, height } = Dimensions.get("window");
 
 export default function AuthScreen() {
   const [mode, setMode] = useState<"login" | "signup">("login");
@@ -25,11 +31,25 @@ export default function AuthScreen() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Custom Alert State
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertTitle, setAlertTitle] = useState("");
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState<"error" | "success" | "info">("info");
+
   const router = useRouter();
+
+  const showAlert = (title: string, message: string, type: "error" | "success" | "info" = "info") => {
+    setAlertTitle(title);
+    setAlertMessage(message);
+    setAlertType(type);
+    setAlertVisible(true);
+  };
 
   const handleAuth = async () => {
     if (!email || !password) {
-      Alert.alert("Error", "Please fill in all fields.");
+      showAlert("Error", "Please fill in all fields.", "error");
       return;
     }
     setLoading(true);
@@ -43,69 +63,63 @@ export default function AuthScreen() {
         router.replace("/screens/UserInfo");
       }
     } catch (error: any) {
-      Alert.alert("Error", error.message);
+      showAlert("Error", error.message, "error");
     }
 
     setLoading(false);
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.wrapper}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
+    <SafeAreaView style={styles.container} edges={["top"]}>
+      <StatusBar style="light" backgroundColor="#2B2A28" />
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        <View style={styles.headerBlock}>
-            <Text style={styles.title}>PromptKit</Text>
-            <Text style={styles.subtitle}>
-              Your AI toolkit — beautifully simple.
-            </Text>
-          </View>
-
-        {/* SEGMENT SWITCH */}
-        <View style={styles.segmentWrapper}>
-          <Pressable
-            onPress={() => setMode("login")}
-            style={[styles.segment, mode === "login" && styles.segmentActive]}
+        {/* CURVED TOP SECTION */}
+        <View style={styles.topSection}>
+          <Svg
+            height={height * 0.4}
+            width={width}
+            viewBox={`0 0 ${width} ${height * 0.4}`}
+            style={styles.curve}
           >
-            <Text
-              style={[
-                styles.segmentText,
-                mode === "login" && styles.segmentTextActive,
-              ]}
-            >
-              Log In
-            </Text>
-          </Pressable>
+            <Path
+              d={`M0,0 L${width},0 L${width},${height * 0.32} Q${width * 0.75},${height * 0.38} ${width / 2},${height * 0.35} Q${width * 0.25},${height * 0.32} 0,${height * 0.38} Z`}
+              fill="#2B2A28"
+            />
+          </Svg>
 
-          <Pressable
-            onPress={() => setMode("signup")}
-            style={[styles.segment, mode === "signup" && styles.segmentActive]}
+          {/* SIGN UP LINK */}
+          <TouchableOpacity
+            style={styles.signUpBtn}
+            onPress={() => setMode(mode === "login" ? "signup" : "login")}
           >
-            <Text
-              style={[
-                styles.segmentText,
-                mode === "signup" && styles.segmentTextActive,
-              ]}
-            >
-              Sign Up
+            <UserPlus size={20} color="#FAF7F2" strokeWidth={2} />
+            <Text style={styles.signUpText}>
+              {mode === "login" ? "Sign Up" : "Sign In"}
             </Text>
-          </Pressable>
+          </TouchableOpacity>
+
+          {/* TITLE */}
+          <Text style={styles.title}>
+            {mode === "login" ? "Sign In" : "Sign Up"}
+          </Text>
         </View>
 
-        {/* CARD */}
-        <View style={styles.card}>
-          {/* EMAIL FIELD */}
+        {/* FORM SECTION */}
+        <ScrollView
+          style={styles.formSection}
+          contentContainerStyle={styles.formContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* EMAIL INPUT */}
           <Text style={styles.label}>Email</Text>
           <View style={styles.inputWrapper}>
-            <Mail size={20} color="#8C877F" />
             <TextInput
-              placeholder="you@example.com"
-              placeholderTextColor="#B7B7B7"
+              placeholder="hannadowie@gmail.com"
+              placeholderTextColor="#8C877F"
               autoCapitalize="none"
               keyboardType="email-address"
               value={email}
@@ -114,29 +128,47 @@ export default function AuthScreen() {
             />
           </View>
 
-          {/* PASSWORD FIELD */}
+          {/* PASSWORD INPUT */}
           <Text style={styles.label}>Password</Text>
-
           <View style={styles.inputWrapper}>
-            <Lock size={20} color="#8C877F" />
-
             <TextInput
-              placeholder="••••••••••"
-              placeholderTextColor="#B7B7B7"
+              placeholder="************"
+              placeholderTextColor="#8C877F"
               secureTextEntry={!showPassword}
               value={password}
               onChangeText={setPassword}
               style={styles.input}
             />
-
-            <Pressable onPress={() => setShowPassword(!showPassword)}>
+            <Pressable
+              onPress={() => setShowPassword(!showPassword)}
+              style={styles.eyeButton}
+            >
               {showPassword ? (
-                <EyeOff size={20} color="#8C877F" />
+                <EyeOff size={20} color="#2B2A28" strokeWidth={2} />
               ) : (
-                <Eye size={20} color="#8C877F" />
+                <Eye size={20} color="#2B2A28" strokeWidth={2} />
               )}
             </Pressable>
           </View>
+
+          {/* SIGN IN BUTTON */}
+          <Pressable
+            onPress={handleAuth}
+            disabled={loading}
+            style={({ pressed }) => [
+              styles.signInBtn,
+              { transform: [{ scale: pressed ? 0.98 : 1 }] },
+            ]}
+          >
+            <Lock size={20} color="#2B2A28" strokeWidth={2.5} />
+            <Text style={styles.signInText}>
+              {loading
+                ? "Loading..."
+                : mode === "login"
+                  ? "Sign In"
+                  : "Create Account"}
+            </Text>
+          </Pressable>
 
           {/* FORGOT PASSWORD */}
           {mode === "login" && (
@@ -144,170 +176,144 @@ export default function AuthScreen() {
               style={styles.forgotBtn}
               onPress={() => router.push("/screens/ResetPassword")}
             >
-              <Text style={styles.forgotText}>Forgot password?</Text>
+              <Text style={styles.forgotText}>Forgot Password?</Text>
             </TouchableOpacity>
           )}
+        </ScrollView>
+      </KeyboardAvoidingView>
 
-          {/* BUTTON */}
-          <Pressable
-            onPress={handleAuth}
-            disabled={loading}
-            style={({ pressed }) => [
-              styles.primaryBtn,
-              loading && styles.primaryBtnDisabled,
-              { transform: [{ scale: pressed ? 0.96 : 1 }] },
-            ]}
-          >
-            <Text style={styles.primaryBtnText}>
-              {loading ? "Loading..." : mode === "login" ? "Log In" : "Sign Up"}
-            </Text>
-          </Pressable>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      {/* Custom Alert */}
+      <CustomAlert
+        visible={alertVisible}
+        title={alertTitle}
+        message={alertMessage}
+        type={alertType}
+        onClose={() => setAlertVisible(false)}
+      />
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
+  container: {
     flex: 1,
     backgroundColor: "#FAF7F2",
   },
 
-  scrollContent: {
-    padding: 22,
-    paddingBottom: 60,
+  /* TOP CURVED SECTION */
+  topSection: {
+    position: "relative",
+    height: height * 0.4,
   },
 
-  /* HEADER */
-  headerBlock: {
-    marginTop: 30,
-    marginBottom: 20,
+  curve: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+  },
+
+  signUpBtn: {
+    position: "absolute",
+    top: 20,
+    right: 20,
+    flexDirection: "row",
     alignItems: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    backgroundColor: "rgba(250, 247, 242, 0.3)",
+    zIndex: 10,
+    gap: 6,
   },
 
- 
+  signUpText: {
+    fontSize: 15,
+    fontFamily: "Poppins_600SemiBold",
+    color: "#FAF7F2",
+  },
 
   title: {
-    fontSize: 32,
+    position: "absolute",
+    bottom: height * 0.08,
+    left: 0,
+    right: 0,
+    fontSize: 42,
     fontFamily: "Poppins_700Bold",
+    color: "#FAF7F2",
     textAlign: "center",
-    color: "#2B2A28",
   },
 
-  subtitle: {
-    fontSize: 14,
-    fontFamily: "Poppins_500Medium",
-    color: "#7A746D",
-    textAlign: "center",
-    marginTop: 3,
+  /* FORM SECTION */
+  formSection: {
+    flexGrow: 0,
+    flexShrink: 1,
+    backgroundColor: "#FAF7F2",
   },
 
-  /* SEGMENT */
-  segmentWrapper: {
-    flexDirection: "row",
-    backgroundColor: "#EEE8E0",
-    borderRadius: 14,
-    padding: 5,
-    marginBottom: 22,
-  },
-
-  segment: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 10,
-  },
-
-  segmentActive: {
-    backgroundColor: "#2B2A28",
-  },
-
-  segmentText: {
-    textAlign: "center",
-    fontSize: 15,
-    fontFamily: "Poppins_500Medium",
-    color: "#8C877F",
-  },
-
-  segmentTextActive: {
-    color: "#FFFFFF",
-    fontFamily: "Poppins_600SemiBold",
-  },
-
-  /* CARD */
-  card: {
-    backgroundColor: "#FFFFFF",
-    padding: 22,
-    borderRadius: 20,
-
-    shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-
-    elevation: 2,
+  formContent: {
+    paddingHorizontal: 28,
+    paddingTop: 10,
+    paddingBottom: 100,
   },
 
   label: {
     fontSize: 13,
-    fontFamily: "Poppins_600SemiBold",
-    color: "#2B2A28",
+    fontFamily: "Poppins_500Medium",
+    color: "#7A746D",
+    marginBottom: 8,
     marginTop: 12,
-    marginBottom: 5,
   },
 
-  /* INPUT FIELD */
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F9F6F2",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#E4E0DB",
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    marginBottom: 10,
+    backgroundColor: "transparent",
+    borderRadius: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderWidth: 2,
+    borderColor: "#2B2A28",
   },
 
   input: {
     flex: 1,
-    fontSize: 15,
+    fontSize: 16,
     fontFamily: "Poppins_500Medium",
     color: "#2B2A28",
-    paddingRight: 6,
+  },
+
+  eyeButton: {
+    padding: 4,
+  },
+
+  signInBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "transparent",
+    borderWidth: 2,
+    borderColor: "#2B2A28",
+    borderRadius: 16,
+    paddingVertical: 16,
+    marginTop: 32,
+    gap: 10,
+  },
+
+  signInText: {
+    fontSize: 16,
+    fontFamily: "Poppins_600SemiBold",
+    color: "#2B2A28",
+    letterSpacing: 0.5,
   },
 
   forgotBtn: {
-    marginTop: 3,
-    alignSelf: "flex-end",
+    alignSelf: "center",
+    marginTop: 24,
   },
 
   forgotText: {
-    fontSize: 13,
+    fontSize: 14,
     fontFamily: "Poppins_500Medium",
     color: "#7A746D",
-  },
-
-  /* BUTTON */
-  primaryBtn: {
-    backgroundColor: "#2B2A28",
-    marginTop: 22,
-    paddingVertical: 14,
-    borderRadius: 12,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
-  },
-
-  primaryBtnDisabled: {
-    opacity: 0.6,
-  },
-
-  primaryBtnText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    textAlign: "center",
-    fontFamily: "Poppins_600SemiBold",
   },
 });

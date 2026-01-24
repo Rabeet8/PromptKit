@@ -12,7 +12,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
-  signOut: async () => {},
+  signOut: async () => { },
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -40,9 +40,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const inAuthGroup = segments[0] === "screens" && segments[1] === "Auth";
     const inResetPassword = segments[0] === "screens" && segments[1] === "ResetPassword";
     const inUserInfo = segments[0] === "screens" && segments[1] === "UserInfo";
+    const inOnboarding = segments[0] === "screens" && segments[1] === "Onboarding";
 
-    if (!user && !inAuthGroup && !inResetPassword) {
-      // Redirect to auth if not logged in
+    if (!user && !inAuthGroup && !inResetPassword && !inOnboarding) {
+      // Redirect to auth if not logged in (but allow onboarding to show first)
       console.log("🔒 User not authenticated, redirecting to Auth");
       router.replace("/screens/Auth");
     }
