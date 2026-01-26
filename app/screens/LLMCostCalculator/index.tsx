@@ -1,11 +1,12 @@
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Animated, StyleSheet, Text, View } from "react-native";
 
 import { CostAPI } from "@/api/cost";
 import { ModelsAPI } from "@/api/models";
 
-import { AdMobBannerAd } from "@/components/AdMobBanner";
+import CustomAlert from "@/components/CustomAlert";
+
 import PrimaryButton from "@/components/Button.tsx";
 import CacheSlider from "@/components/CacheSlider";
 import CostCard from "@/components/CostCard";
@@ -18,6 +19,24 @@ import { trackServiceUsage } from "@/utils/usageTracker";
 
 export default function CostCalculatorScreen() {
   const router = useRouter();
+  const fadeAnim = useState(new Animated.Value(0))[0];
+  const slideAnim = useState(new Animated.Value(20))[0];
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        tension: 50,
+        friction: 7,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
   const [models, setModels] = useState<string[]>([]);
   const [selectedModel, setSelectedModel] = useState<string | null>(null);
@@ -35,6 +54,18 @@ export default function CostCalculatorScreen() {
   const [monthlyCache, setMonthlyCache] = useState("—"); // NEW third result
 
   const [loading, setLoading] = useState(false);
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalType, setModalType] = useState<"error" | "success" | "info">("info");
+
+  const showAlert = (title: string, message: string, type: "error" | "success" | "info" = "info") => {
+    setModalTitle(title);
+    setModalMessage(message);
+    setModalType(type);
+    setModalVisible(true);
+  };
 
   useEffect(() => {
     const loadModels = async () => {
@@ -55,7 +86,7 @@ export default function CostCalculatorScreen() {
   const calculateCost = async () => {
     console.log('cossst')
     if (!selectedModel) {
-      alert("Please select a model");
+      showAlert("Input Required", "Please select a model.", "info");
       return;
     }
 
@@ -73,7 +104,7 @@ export default function CostCalculatorScreen() {
       setLoading(true);
 
       const res = await CostAPI.calculateCost(requestData);
-      console.log(res,'LLMM')
+      console.log(res, 'LLMM')
       // Update UI values
       setDaily(res.daily_cost.toString());
       setMonthly(res.monthly_cost.toString());
@@ -85,8 +116,9 @@ export default function CostCalculatorScreen() {
       // Log successful inference
       await logInferenceSuccess("llmCostCalculator", requestData, res, startTime);
 
-    } catch (err) {
+    } catch (err: any) {
       console.log("Cost API Error:", err);
+      showAlert("Calculation Failed", err.message || "An error occurred.", "error");
       // Log failed inference
       await logInferenceError("llmCostCalculator", requestData, err, startTime);
     } finally {
@@ -99,12 +131,13 @@ export default function CostCalculatorScreen() {
       <Header
         title="LLM Cost Estimator"
         onBack={() => router.back()}
-        onSettingsPress={() => {}}
+        onSettingsPress={() => { }}
       />
 
-      <ScrollView
+      <Animated.ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 120, paddingTop: 10 }}
+        style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}
       >
         <ModelDropdown
           label="Model"
@@ -162,13 +195,17 @@ export default function CostCalculatorScreen() {
           label={loading ? "Calculating..." : "Calculate"}
           onPress={calculateCost}
         />
-      </ScrollView>
+      </Animated.ScrollView>
 
-      {/* AdSense Ad */}
-      <View style={styles.adContainer}>
-        <AdMobBannerAd size="banner" />
-      </View>
-    </View>
+
+      <CustomAlert
+        visible={modalVisible}
+        title={modalTitle}
+        message={modalMessage}
+        type={modalType}
+        onClose={() => setModalVisible(false)}
+      />
+    </View >
   );
 }
 
@@ -179,15 +216,13 @@ const styles = StyleSheet.create({
     padding: 26,
   },
   sectionLabel: {
-    fontSize: 13,
-    letterSpacing: 1,
-    color: "#8C877F",
-    marginBottom: 10,
-    marginTop: 16,
-  },
-  adContainer: {
-    marginTop: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
+    fontSize: 14,
+    fontFamily: "Poppins_600SemiBold",
+    letterSpacing: 0.5,
+    color: "#6B7280",
+    marginBottom: 12,
+    marginTop: 24,
   },
 });
+
+

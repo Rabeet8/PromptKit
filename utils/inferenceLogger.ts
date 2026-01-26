@@ -1,5 +1,5 @@
-import { ref, push, set, get, query, orderByChild, limitToLast } from 'firebase/database';
-import { database, auth } from '@/config/firebase';
+import { auth, database } from '@/config/firebase';
+import { get, limitToLast, orderByChild, push, query, ref, set } from 'firebase/database';
 
 export interface InferenceLog {
   userId: string;
@@ -48,12 +48,17 @@ export const logInference = async (
       logData.processingTime = processingTime;
     }
 
-    // Store in Firebase Realtime Database - general logs
-    const logsRef = ref(database, 'inference_logs');
-    const newLogRef = push(logsRef);
-    await set(newLogRef, logData);
-
-    console.log(`Inference logged: ${service} - ${status}`);
+    // Store in Firebase Realtime Database - user specific logs to avoid PERMISSION_DENIED
+    // Assuming rules allow write to users/$uid
+    try {
+      const logsRef = ref(database, `users/${user.uid}/inference_history`);
+      const newLogRef = push(logsRef);
+      await set(newLogRef, logData);
+      console.log(`Inference logged: ${service} - ${status}`);
+    } catch (writeError) {
+      // Suppress permission errors specifically to not disturb the user flow
+      console.warn('Failed to write inference log to Firebase (Permission Denied or Network):', writeError);
+    }
   } catch (error) {
     console.error('Failed to log inference:', error);
   }

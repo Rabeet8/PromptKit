@@ -39,7 +39,22 @@ apiClient.interceptors.request.use(
 
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    console.error("❌ Request Setup Error:", error.message);
+    return Promise.reject(error);
+  }
+);
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error(`❌ API Error [${error.config?.method?.toUpperCase()} ${error.config?.url}]:`, error.message);
+    if (error.response) {
+      console.error("   Status:", error.response.status);
+      console.error("   Data:", JSON.stringify(error.response.data, null, 2));
+    }
+    return Promise.reject(error);
+  }
 );
 
 export default apiClient;

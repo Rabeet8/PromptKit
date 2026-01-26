@@ -1,7 +1,8 @@
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Animated, StyleSheet, Text, View } from "react-native";
 
+import CustomAlert from "@/components/CustomAlert";
 import { Calculator } from "lucide-react-native";
 
 import PrimaryButton from "@/components/Button.tsx";
@@ -9,17 +10,35 @@ import DescriptionInput from "@/components/DescriptionCard.tsx";
 import Header from "@/components/Header";
 import ModelDropdown from "@/components/modelDropdown";
 
+import { ModelsAPI } from "@/api/models";
 import { TokenizeAPI } from "@/api/tokenize";
-import { AdMobBannerAd } from "@/components/AdMobBanner";
 import {
-    logInferenceError,
-    logInferenceStart,
-    logInferenceSuccess,
+  logInferenceError,
+  logInferenceStart,
+  logInferenceSuccess,
 } from "@/utils/inferenceLogger";
 import { trackServiceUsage } from "@/utils/usageTracker";
 
 export default function TokenCalculatorScreen() {
   const router = useRouter();
+  const fadeAnim = useState(new Animated.Value(0))[0];
+  const slideAnim = useState(new Animated.Value(20))[0];
+
+  React.useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        tension: 50,
+        friction: 7,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
   const [selectedModel, setSelectedModel] = useState<string | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -30,35 +49,53 @@ export default function TokenCalculatorScreen() {
   const [characterCount, setCharacterCount] = useState<number | null>(null);
   const [approx, setApprox] = useState<boolean | null>(null);
 
+
+
   const [loading, setLoading] = useState(false);
 
-  const models = [
-    "GPT-4o",
-    "GPT-4o Mini",
-    "GPT-4 Turbo",
-    "GPT-3.5 Turbo",
-    "Gemini 1.5 Flash",
-    "Claude 3 Haiku",
-    "Claude 3 Opus",
-    "Llama 3 70B",
-    "Llama 3 8B",
-  ];
+  // Custom Alert State
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalType, setModalType] = useState<"error" | "success" | "info">("info");
 
-  // 🔥 TOKENIZE HANDLER
+  const showAlert = (title: string, message: string, type: "error" | "success" | "info" = "info") => {
+    setModalTitle(title);
+    setModalMessage(message);
+    setModalType(type);
+    setModalVisible(true);
+  };
+
+  const [models, setModels] = useState<string[]>([]);
+  const [loadingModels, setLoadingModels] = useState(false);
+
+  React.useEffect(() => {
+    const loadModels = async () => {
+      try {
+        setLoadingModels(true);
+        const res = await ModelsAPI.getModels();
+        setModels(res.models || []);
+      } catch (err) {
+        console.log("Failed to fetch models:", err);
+      } finally {
+        setLoadingModels(false);
+      }
+    };
+    loadModels();
+  }, []);
+
   const handleTokenize = async () => {
-    if (!selectedModel) return alert("Please select a model.");
-    if (!description.trim()) return alert("Please enter text to tokenize.");
+    if (!selectedModel) return showAlert("Input Required", "Please select a model.", "info");
+    if (!description.trim()) return showAlert("Input Required", "Please enter text to tokenize.", "info");
 
     const requestData = { model: selectedModel, text: description };
-    console.log("📤 Tokenize Request:", requestData);
-    
+
     const startTime = logInferenceStart("tokenCalculator", requestData);
 
     try {
       setLoading(true);
       const res = await TokenizeAPI.tokenize(requestData);
-      
-      // 🔍 LOG THE API RESULT
+
       console.log("✅ Tokenize API Result:", {
         tokens: res.tokens,
         characters: res.characters,
@@ -72,8 +109,10 @@ export default function TokenCalculatorScreen() {
 
       await trackServiceUsage("tokenCalculator");
       await logInferenceSuccess("tokenCalculator", requestData, res, startTime);
-    } catch (err) {
+    } catch (err: any) {
+      const errorMessage = err.message || "An error occurred during tokenization.";
       console.error("❌ Tokenize API Error:", err);
+      showAlert("Tokenization Failed", errorMessage, "error");
       await logInferenceError("tokenCalculator", requestData, err, startTime);
     } finally {
       setLoading(false);
@@ -105,9 +144,10 @@ export default function TokenCalculatorScreen() {
     <View style={styles.container}>
       <Header title="Token Calculator" onBack={() => router.back()} />
 
-      <ScrollView
+      <Animated.ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 120, paddingTop: 20 }}
+        style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}
       >
         {/* MODEL SELECTOR */}
         <ModelDropdown
@@ -115,6 +155,7 @@ export default function TokenCalculatorScreen() {
           value={selectedModel || "Choose your model"}
           isOpen={dropdownOpen}
           options={models}
+          loading={loadingModels}
           onToggle={() => setDropdownOpen(!dropdownOpen)}
           onSelect={(m) => {
             setSelectedModel(m);
@@ -141,12 +182,14 @@ export default function TokenCalculatorScreen() {
         {tokenCount !== null && (
           <ResultCard
             title="Tokenization Result"
-            icon={<Calculator size={20} color="#2D2A26" strokeWidth={2} />}
+            icon={<Calculator size={22} color="#4F46E5" strokeWidth={2} />}
           >
             <View style={styles.resultRow}>
               <Text style={styles.resultLabel}>Total Tokens</Text>
               <Text style={styles.resultValue}>{tokenCount}</Text>
             </View>
+
+            <View style={styles.divider} />
 
             <View style={styles.resultRow}>
               <Text style={styles.resultLabel}>Characters</Text>
@@ -155,12 +198,16 @@ export default function TokenCalculatorScreen() {
 
           </ResultCard>
         )}
-      </ScrollView>
+      </Animated.ScrollView>
 
-      <View style={styles.adContainer}>
-        <AdMobBannerAd size="banner" />
-      </View>
-    </View>
+      <CustomAlert
+        visible={modalVisible}
+        title={modalTitle}
+        message={modalMessage}
+        type={modalType}
+        onClose={() => setModalVisible(false)}
+      />
+    </View >
   );
 }
 
@@ -173,48 +220,53 @@ const styles = StyleSheet.create({
 
   card: {
     backgroundColor: "#FFFFFF",
-    padding: 20,
-    borderRadius: 18,
+    padding: 24,
+    borderRadius: 24,
     marginTop: 24,
     shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: "#F0F0F0",
   },
 
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 14,
+    marginBottom: 18,
+    alignItems: "center",
   },
 
   cardTitle: {
-    fontSize: 16,
+    fontSize: 17,
     fontFamily: "Poppins_600SemiBold",
-    color: "#2D2A26",
+    color: "#1F2937",
   },
 
   resultRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingVertical: 6,
+    paddingVertical: 8,
+    alignItems: 'center',
   },
 
   resultLabel: {
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: "Poppins_500Medium",
-    color: "#6A655F",
+    color: "#6B7280",
   },
 
   resultValue: {
-    fontSize: 15,
+    fontSize: 18,
     fontFamily: "Poppins_600SemiBold",
-    color: "#2D2A26",
+    color: "#111827",
   },
 
-  adContainer: {
-    marginTop: 20,
-    alignItems: "center",
-    justifyContent: "center",
+  divider: {
+    height: 1,
+    backgroundColor: "#F3F4F6",
+    marginVertical: 8,
   },
 });

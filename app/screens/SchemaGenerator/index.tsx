@@ -2,15 +2,15 @@ import * as Clipboard from "expo-clipboard";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-  Platform,
+  Animated,
   ScrollView,
   StyleSheet,
   Text,
-  ToastAndroid,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 
+import CustomAlert from "@/components/CustomAlert";
 import { ClipboardCopy, FileJson } from "lucide-react-native";
 
 import PrimaryButton from "@/components/Button.tsx";
@@ -18,7 +18,6 @@ import DescriptionInput from "@/components/DescriptionCard.tsx";
 import Header from "@/components/Header";
 
 import { SchemaAPI } from "@/api/schema";
-import { AdMobBannerAd } from "@/components/AdMobBanner";
 import { trackServiceUsage } from "@/utils/usageTracker";
 
 import {
@@ -29,21 +28,50 @@ import {
 
 export default function SchemaGenerator() {
   const router = useRouter();
+  const fadeAnim = useState(new Animated.Value(0))[0];
+  const slideAnim = useState(new Animated.Value(20))[0];
+
+  React.useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        tension: 50,
+        friction: 7,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
   const [description, setDescription] = useState("");
   const [schema, setSchema] = useState("");
+
   const [validExample, setValidExample] = useState("");
   const [invalidExample, setInvalidExample] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalType, setModalType] = useState<"error" | "success" | "info">("info");
+
+  const showAlert = (title: string, message: string, type: "error" | "success" | "info" = "info") => {
+    setModalTitle(title);
+    setModalMessage(message);
+    setModalType(type);
+    setModalVisible(true);
+  };
 
   const copy = async (text: string) => {
     if (!text) return;
     await Clipboard.setStringAsync(text);
 
-    if (Platform.OS === "android") {
-      ToastAndroid.show("Copied!", ToastAndroid.SHORT);
-    } else {
-      alert("Copied!");
-    }
+    if (!text) return;
+    await Clipboard.setStringAsync(text);
+    showAlert("Copied!", "JSON copied to clipboard.", "success");
   };
 
   const handleGenerate = async () => {
@@ -63,7 +91,9 @@ export default function SchemaGenerator() {
 
       await trackServiceUsage("schemaGenerator");
       await logInferenceSuccess("schemaGenerator", requestData, res, startTime);
-    } catch (err) {
+    } catch (err: any) {
+      const errorMessage = err.message || "An error occurred during schema generation.";
+      showAlert("Generation Failed", errorMessage, "error");
       await logInferenceError("schemaGenerator", requestData, err, startTime);
     } finally {
       setLoading(false);
@@ -99,9 +129,10 @@ export default function SchemaGenerator() {
     <View style={styles.screen}>
       <Header title="Schema Generator" onBack={() => router.back()} />
 
-      <ScrollView
+      <Animated.ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 90, paddingTop: 25 }}
+        style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}
       >
         {/* LABEL */}
         <Text style={styles.label}>Enter your text</Text>
@@ -126,13 +157,17 @@ export default function SchemaGenerator() {
             {renderCard("Invalid Example", invalidExample)}
           </>
         )}
-      </ScrollView>
+      </Animated.ScrollView>
 
-      {/* Ad */}
-      <View style={styles.adContainer}>
-        <AdMobBannerAd size="banner" />
-      </View>
-    </View>
+
+      <CustomAlert
+        visible={modalVisible}
+        title={modalTitle}
+        message={modalMessage}
+        type={modalType}
+        onClose={() => setModalVisible(false)}
+      />
+    </View >
   );
 }
 
@@ -153,55 +188,51 @@ const styles = StyleSheet.create({
   /* OUTPUT CARDS */
   outputCard: {
     backgroundColor: "#FFFFFF",
-    padding: 20,
-    borderRadius: 18,
-    marginTop: 26,
-
+    padding: 24,
+    borderRadius: 24,
+    marginTop: 24,
     shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: "#F0F0F0",
   },
 
   outputHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 14,
+    marginBottom: 16,
   },
 
   outputTitleRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 10,
   },
 
   outputTitle: {
     fontSize: 16,
     fontFamily: "Poppins_600SemiBold",
-    color: "#2D2A26",
+    color: "#1F2937",
   },
 
   jsonContainer: {
-    maxHeight: 230,
-    minHeight: 230,
+    maxHeight: 300,
+    minHeight: 150,
+    borderRadius: 16,
+    padding: 16,
+    backgroundColor: "#1E293B", // Dark slate background
     borderWidth: 1,
-    borderColor: "#E6E2DC",
-    borderRadius: 12,
-    padding: 12,
-    backgroundColor: "#FBFAF8",
+    borderColor: "#334155",
   },
 
   outputText: {
     fontSize: 13,
     fontFamily: "monospace",
-    color: "#2D2A26",
+    color: "#E2E8F0", // Light text
     lineHeight: 20,
-  },
-
-  adContainer: {
-    marginTop: 14,
-    alignItems: "center",
-    justifyContent: "center",
   },
 });

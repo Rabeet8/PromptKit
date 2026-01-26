@@ -1,17 +1,17 @@
+import CustomAlert from "@/components/CustomAlert";
 import { auth, database } from "@/config/firebase";
 import { getAllServiceUsage } from "@/utils/usageTracker";
 import { useRouter } from "expo-router";
 import { get, ref, set } from "firebase/database";
 import { useCallback, useEffect, useState } from "react";
 import {
-    Alert,
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Animated,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
 
 import PrimaryButton from "@/components/Button.tsx";
@@ -20,10 +20,40 @@ import Header from "@/components/Header";
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const fadeAnim = useState(new Animated.Value(0))[0];
+  const slideAnim = useState(new Animated.Value(20))[0];
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        tension: 50,
+        friction: 7,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [usageStats, setUsageStats] = useState<Record<string, number>>({});
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalType, setModalType] = useState<"error" | "success" | "info">("info");
+
+  const showAlert = (title: string, message: string, type: "error" | "success" | "info" = "info") => {
+    setModalTitle(title);
+    setModalMessage(message);
+    setModalType(type);
+    setModalVisible(true);
+  };
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -46,7 +76,7 @@ export default function ProfileScreen() {
   const loadProfile = useCallback(async () => {
     const user = auth.currentUser;
     if (!user) {
-      Alert.alert("Error", "User not authenticated.");
+      showAlert("Error", "User not authenticated.", "error");
       router.replace("/screens/Auth");
       return;
     }
@@ -63,8 +93,9 @@ export default function ProfileScreen() {
 
       const usage = await getAllServiceUsage();
       setUsageStats(usage);
+      setUsageStats(usage);
     } catch (error: any) {
-      Alert.alert("Error", "Failed to load profile: " + error.message);
+      showAlert("Error", "Failed to load profile: " + error.message, "error");
     }
   }, [router]);
 
@@ -78,40 +109,42 @@ export default function ProfileScreen() {
     setRefreshing(false);
   }, [loadProfile]);
 
- const handleSave = async () => {
-  if (!firstName || !lastName || !userType || !experience) {
-    Alert.alert("Error", "Please fill in all required fields.");
-    return;
-  }
+  const handleSave = async () => {
+    if (!firstName || !lastName || !userType || !experience) {
+      showAlert("Missing Data", "Please fill in all required fields.", "info");
+      return;
+    }
 
-  const user = auth.currentUser;
-  if (!user) {
-    Alert.alert("Error", "User not authenticated.");
-    return;
-  }
+    const user = auth.currentUser;
+    if (!user) {
+      showAlert("Error", "User not authenticated.", "error");
+      return;
+    }
 
-  setLoading(true);
+    setLoading(true);
 
-  try {
-    await set(ref(database, `users/${user.uid}`), {
-      firstName,
-      lastName,
-      userType,
-      experience,
-      description,
-      email: user.email,
-    });
+    try {
+      await set(ref(database, `users/${user.uid}`), {
+        firstName,
+        lastName,
+        userType,
+        experience,
+        description,
+        email: user.email,
+      });
 
-    Alert.alert("Success", "Profile updated successfully.");
 
-    router.replace("/screens/Home");
 
-  } catch (error: any) {
-    Alert.alert("Error", error.message);
-  }
+      showAlert("Success", "Profile updated successfully.", "success");
 
-  setLoading(false);
-};
+      router.replace("/screens/Home");
+
+    } catch (error: any) {
+      showAlert("Error", error.message, "error");
+    }
+
+    setLoading(false);
+  };
 
 
   if (initialLoading) {
@@ -151,8 +184,8 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.screen}>
-      <ScrollView
-        style={{ flex: 1 }}
+      <Animated.ScrollView
+        style={{ flex: 1, opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 120, paddingTop: 10 }}
         refreshControl={
@@ -262,7 +295,15 @@ export default function ProfileScreen() {
           onPress={handleSave}
           disabled={loading}
         />
-      </ScrollView>
+      </Animated.ScrollView>
+
+      <CustomAlert
+        visible={modalVisible}
+        title={modalTitle}
+        message={modalMessage}
+        type={modalType}
+        onClose={() => setModalVisible(false)}
+      />
     </View>
   );
 }
@@ -289,18 +330,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginBottom: 6,
     borderWidth: 1,
-    borderColor: "#E7E2DC",
-
+    borderColor: "#F0F0F0",
     shadowColor: "#000",
     shadowOpacity: 0.05,
     shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
 
   input: {
     fontSize: 16,
     fontFamily: "Poppins_500Medium",
-    color: "#2D2A26",
+    color: "#1F2937",
   },
 
   pillContainer: {
@@ -311,14 +352,22 @@ const styles = StyleSheet.create({
   },
 
   pill: {
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    backgroundColor: "#EFEDE8",
-    borderRadius: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    backgroundColor: "#F3F4F6",
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: "transparent",
   },
 
   pillActive: {
-    backgroundColor: "#2D2A26",
+    backgroundColor: "#1F2937",
+    borderColor: "#1F2937",
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
   },
 
   pillText: {
