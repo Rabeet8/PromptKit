@@ -14,6 +14,9 @@ import {
   View
 } from "react-native";
 
+import { LinearGradient } from "expo-linear-gradient";
+import { BadgeDollarSign, Calculator, FileJson, ListChecks } from "lucide-react-native";
+
 import PrimaryButton from "@/components/Button.tsx";
 import DescriptionInput from "@/components/DescriptionCard.tsx";
 import Header from "@/components/Header";
@@ -147,11 +150,29 @@ export default function ProfileScreen() {
   };
 
 
+  // Helper for Avatar Initials
+  const getInitials = (first: string, last: string) => {
+    const f = first ? first[0].toUpperCase() : "";
+    const l = last ? last[0].toUpperCase() : "";
+    return f + l || (auth.currentUser?.email?.[0].toUpperCase() || "?");
+  };
+
+  const StatCard = ({ icon, value, label, color, bg }: any) => (
+    <View style={[styles.statCard, { backgroundColor: bg }]}>
+      <View style={[styles.statIconCircle, { backgroundColor: "rgba(255,255,255,0.7)" }]}>
+        {icon}
+      </View>
+      <View>
+        <Text style={[styles.statValue, { color: color }]}>{value || 0}</Text>
+        <Text style={styles.statLabel}>{label}</Text>
+      </View>
+    </View>
+  );
+
   if (initialLoading) {
     return (
       <View style={styles.screen}>
         <View style={styles.loadingContainer}>
-          {/* Header Skeleton */}
           <View style={styles.loadingHeader}>
             <View style={styles.skeletonCircle} />
             <View style={{ flex: 1 }}>
@@ -159,23 +180,9 @@ export default function ProfileScreen() {
               <View style={[styles.skeletonLine, { width: '40%', height: 12 }]} />
             </View>
           </View>
-
-          {/* Content Skeletons */}
           <View style={styles.loadingContent}>
+            <View style={[styles.skeletonBox, { height: 120, marginBottom: 16 }]} />
             <View style={[styles.skeletonBox, { height: 60, marginBottom: 16 }]} />
-            <View style={[styles.skeletonBox, { height: 60, marginBottom: 16 }]} />
-            <View style={[styles.skeletonBox, { height: 100, marginBottom: 16 }]} />
-            <View style={[styles.skeletonBox, { height: 80 }]} />
-          </View>
-
-          {/* Loading Text */}
-          <View style={styles.loadingTextContainer}>
-            <Text style={styles.loadingText}>Loading your profile</Text>
-            <View style={styles.dotsContainer}>
-              <View style={[styles.dot, styles.dot1]} />
-              <View style={[styles.dot, styles.dot2]} />
-              <View style={[styles.dot, styles.dot3]} />
-            </View>
           </View>
         </View>
       </View>
@@ -184,6 +191,8 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.screen}>
+      <Header title="My Profile" onBack={() => router.back()} />
+
       <Animated.ScrollView
         style={{ flex: 1, opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}
         showsVerticalScrollIndicator={false}
@@ -197,104 +206,143 @@ export default function ProfileScreen() {
           />
         }
       >
-        <Header title="My Profile" onBack={() => router.back()} />
+        {/* PROFILE HEADER START */}
+        <View style={styles.profileHeader}>
+          <LinearGradient
+            colors={["#FF9F4A", "#FF6B35"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.avatarContainer}
+          >
+            <Text style={styles.avatarText}>{getInitials(firstName, lastName)}</Text>
+          </LinearGradient>
+          <View style={styles.profileInfo}>
+            <Text style={styles.profileEmail}>{auth.currentUser?.email}</Text>
+            <Text style={styles.profileRole}>{userType || "User"}</Text>
+          </View>
+        </View>
+        {/* PROFILE HEADER END */}
 
-        {/* FIRST NAME */}
-        <Text style={styles.label}>First Name</Text>
-        <View style={styles.inputField}>
-          <TextInput
-            placeholder="John"
-            placeholderTextColor="#A8A29E"
-            value={firstName}
-            onChangeText={setFirstName}
-            style={styles.input}
+        {/* STATS GRID START */}
+        <Text style={styles.sectionTitle}>Your Activity</Text>
+        <View style={styles.statsGrid}>
+          <StatCard
+            value={usageStats.tokenCalculator}
+            label="Tokens Calc"
+            color="#4F46E5"
+            bg="#EEF2FF"
+            icon={<Calculator size={20} color="#4F46E5" />}
+          />
+          <StatCard
+            value={usageStats.promptLinter}
+            label="Prompts Linted"
+            color="#D97706"
+            bg="#FFFBEB"
+            icon={<ListChecks size={20} color="#D97706" />}
+          />
+          <StatCard
+            value={usageStats.schemaGenerator}
+            label="Schemas Gen"
+            color="#059669"
+            bg="#ECFDF5"
+            icon={<FileJson size={20} color="#059669" />}
+          />
+          <StatCard
+            value={usageStats.llmCostCalculator}
+            label="Cost Est"
+            color="#DC2626"
+            bg="#FEF2F2"
+            icon={<BadgeDollarSign size={20} color="#DC2626" />}
           />
         </View>
+        {/* STATS GRID END */}
 
-        {/* LAST NAME */}
-        <Text style={styles.label}>Last Name</Text>
-        <View style={styles.inputField}>
-          <TextInput
-            placeholder="Doe"
-            placeholderTextColor="#A8A29E"
-            value={lastName}
-            onChangeText={setLastName}
-            style={styles.input}
-          />
-        </View>
+        {/* PERSONAL DETAILS FORM START */}
+        <Text style={styles.sectionTitle}>Personal Details</Text>
 
-        {/* USER TYPE */}
-        <Text style={styles.label}>User Type</Text>
-        <View style={styles.pillContainer}>
-          {userTypes.map((type, idx) => (
-            <TouchableOpacity
-              key={idx}
-              style={[styles.pill, userType === type && styles.pillActive]}
-              onPress={() => setUserType(type)}
-            >
-              <Text
-                style={[
-                  styles.pillText,
-                  userType === type && styles.pillTextActive,
-                ]}
-              >
-                {type}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* EXPERIENCE LEVEL */}
-        <Text style={styles.label}>Experience Level</Text>
-        <View style={styles.pillContainer}>
-          {experienceLevels.map((lvl, idx) => (
-            <TouchableOpacity
-              key={idx}
-              style={[styles.pill, experience === lvl && styles.pillActive]}
-              onPress={() => setExperience(lvl)}
-            >
-              <Text
-                style={[
-                  styles.pillText,
-                  experience === lvl && styles.pillTextActive,
-                ]}
-              >
-                {lvl}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* PURPOSE */}
-        <Text style={styles.label}>Purpose of Using PromptKit</Text>
-
-        <DescriptionInput
-          value={description}
-          onChangeText={setDescription}
-          placeholder="Enter details about your purpose..."
-        />
-
-        {/* USAGE STATS */}
-        <Text style={styles.label}>Service Usage Statistics</Text>
-        <View style={styles.usageContainer}>
-          {[
-            ["Token Calculator", usageStats.tokenCalculator],
-            ["Prompt Linter", usageStats.promptLinter],
-            ["Schema Generator", usageStats.schemaGenerator],
-            ["LLM Cost Calculator", usageStats.llmCostCalculator],
-          ].map(([label, value], index) => (
-            <View key={index} style={styles.usageRow}>
-              <Text style={styles.usageLabel}>{label}:</Text>
-              <Text style={styles.usageValue}>{value || 0} times</Text>
+        <View style={styles.formContainer}>
+          <View style={styles.row}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.inputLabel}>First Name</Text>
+              <TextInput
+                placeholder="John"
+                placeholderTextColor="#9CA3AF"
+                value={firstName}
+                onChangeText={setFirstName}
+                style={styles.input}
+              />
             </View>
-          ))}
+            <View style={{ width: 16 }} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.inputLabel}>Last Name</Text>
+              <TextInput
+                placeholder="Doe"
+                placeholderTextColor="#9CA3AF"
+                value={lastName}
+                onChangeText={setLastName}
+                style={styles.input}
+              />
+            </View>
+          </View>
+
+          {/* USER TYPE */}
+          <Text style={styles.inputLabel}>User Type</Text>
+          <View style={styles.pillContainer}>
+            {userTypes.map((type, idx) => (
+              <TouchableOpacity
+                key={idx}
+                style={[styles.pill, userType === type && styles.pillActive]}
+                onPress={() => setUserType(type)}
+              >
+                <Text
+                  style={[
+                    styles.pillText,
+                    userType === type && styles.pillTextActive,
+                  ]}
+                >
+                  {type}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* EXPERIENCE */}
+          <Text style={styles.inputLabel}>Experience Level</Text>
+          <View style={styles.pillContainer}>
+            {experienceLevels.map((lvl, idx) => (
+              <TouchableOpacity
+                key={idx}
+                style={[styles.pill, experience === lvl && styles.pillActive]}
+                onPress={() => setExperience(lvl)}
+              >
+                <Text
+                  style={[
+                    styles.pillText,
+                    experience === lvl && styles.pillTextActive,
+                  ]}
+                >
+                  {lvl}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* DESCRIPTION */}
+          <Text style={styles.inputLabel}>Purpose</Text>
+          <DescriptionInput
+            value={description}
+            onChangeText={setDescription}
+            placeholder="Tell us how you use PromptKit..."
+          />
         </View>
 
-        <PrimaryButton
-          label={loading ? "Saving..." : "Save Profile"}
-          onPress={handleSave}
-          disabled={loading}
-        />
+        <View style={{ marginTop: 24 }}>
+          <PrimaryButton
+            label={loading ? "Saving Profile..." : "Save Changes"}
+            onPress={handleSave}
+            disabled={loading}
+          />
+        </View>
       </Animated.ScrollView>
 
       <CustomAlert
@@ -312,179 +360,168 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: "#FAF7F2",
-    paddingHorizontal: 26,
+    paddingHorizontal: 24,
   },
 
-  label: {
-    fontSize: 15,
+  // Profile Header
+  profileHeader: {
+    alignItems: 'center',
+    marginBottom: 32,
+    marginTop: 10,
+  },
+  avatarContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+    shadowColor: "#FF6B35",
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 8,
+  },
+  avatarText: {
+    fontSize: 28,
+    fontFamily: "Poppins_700Bold",
+    color: "#FFFFFF",
+  },
+  profileInfo: {
+    alignItems: 'center',
+  },
+  profileEmail: {
+    fontSize: 16,
     fontFamily: "Poppins_600SemiBold",
-    color: "#2D2A26",
-    marginTop: 16,
-    marginBottom: 8,
+    color: "#1F2937",
+    marginBottom: 4,
+  },
+  profileRole: {
+    fontSize: 14,
+    fontFamily: "Poppins_500Medium",
+    color: "#6B7280",
+    backgroundColor: "#F3F4F6",
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    overflow: 'hidden',
   },
 
-  inputField: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    marginBottom: 6,
+  // Titles
+  sectionTitle: {
+    fontSize: 18,
+    fontFamily: "Poppins_600SemiBold",
+    color: "#111827",
+    marginBottom: 16,
+    letterSpacing: 0.5,
+  },
+
+  // Stats Grid
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginBottom: 32,
+  },
+  statCard: {
+    width: '48%', // roughly half - gap
+    padding: 16,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#F0F0F0",
+    borderColor: "rgba(0,0,0,0.03)",
+  },
+  statIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  statValue: {
+    fontSize: 20,
+    fontFamily: "Poppins_700Bold",
+    marginBottom: 2,
+  },
+  statLabel: {
+    fontSize: 13,
+    fontFamily: "Poppins_500Medium",
+    color: "#6B7280",
+  },
+
+  // Form
+  formContainer: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 24,
+    padding: 24,
     shadowColor: "#000",
     shadowOpacity: 0.05,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    shadowRadius: 15,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 3,
   },
-
+  row: {
+    flexDirection: 'row',
+    marginBottom: 16,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontFamily: "Poppins_500Medium",
+    color: "#374151",
+    marginBottom: 8,
+    marginLeft: 4,
+  },
   input: {
-    fontSize: 16,
+    backgroundColor: "#F9FAFB",
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 15,
     fontFamily: "Poppins_500Medium",
     color: "#1F2937",
+    borderWidth: 1,
+    borderColor: "#F3F4F6",
   },
 
   pillContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 10,
-    marginBottom: 10,
+    gap: 8,
+    marginBottom: 20,
   },
-
   pill: {
     paddingVertical: 10,
     paddingHorizontal: 16,
-    backgroundColor: "#F3F4F6",
-    borderRadius: 24,
+    backgroundColor: "#F9FAFB",
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: "transparent",
+    borderColor: "#F3F4F6",
   },
-
   pillActive: {
     backgroundColor: "#1F2937",
     borderColor: "#1F2937",
     shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4, // Android shadow
   },
-
   pillText: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: "Poppins_500Medium",
-    color: "#2D2A26",
+    color: "#4B5563",
   },
-
   pillTextActive: {
     color: "#FFFFFF",
   },
 
-  usageContainer: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 18,
-    padding: 16,
-    marginTop: 10,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: "#E7E2DC",
-
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
-  },
-
-  usageRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F2F0EC",
-  },
-
-  usageLabel: {
-    fontSize: 14,
-    fontFamily: "Poppins_500Medium",
-    color: "#2D2A26",
-  },
-
-  usageValue: {
-    fontSize: 14,
-    fontFamily: "Poppins_600SemiBold",
-    color: "#007AFF",
-  },
-
-  // Loading Screen Styles
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    paddingHorizontal: 20,
-  },
-
-  loadingHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 16,
-    marginBottom: 40,
-    paddingTop: 60,
-  },
-
-  skeletonCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "#E7E2DC",
-  },
-
-  skeletonLine: {
-    height: 16,
-    backgroundColor: "#E7E2DC",
-    borderRadius: 8,
-  },
-
-  loadingContent: {
-    marginTop: 20,
-  },
-
-  skeletonBox: {
-    backgroundColor: "#E7E2DC",
-    borderRadius: 16,
-  },
-
-  loadingTextContainer: {
-    alignItems: "center",
-    marginTop: 60,
-  },
-
-  loadingText: {
-    fontSize: 18,
-    fontFamily: "Poppins_600SemiBold",
-    color: "#2D2A26",
-    marginBottom: 16,
-  },
-
-  dotsContainer: {
-    flexDirection: "row",
-    gap: 8,
-  },
-
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#2D2A26",
-  },
-
-  dot1: {
-    opacity: 0.3,
-  },
-
-  dot2: {
-    opacity: 0.6,
-  },
-
-  dot3: {
-    opacity: 1,
-  },
+  // Skeleton
+  loadingContainer: { flex: 1, justifyContent: "center", paddingHorizontal: 20 },
+  loadingHeader: { flexDirection: "row", alignItems: "center", gap: 16, marginBottom: 40, paddingTop: 60 },
+  skeletonCircle: { width: 60, height: 60, borderRadius: 30, backgroundColor: "#E7E2DC" },
+  skeletonLine: { height: 16, backgroundColor: "#E7E2DC", borderRadius: 8 },
+  loadingContent: { marginTop: 20 },
+  skeletonBox: { backgroundColor: "#E7E2DC", borderRadius: 16 },
+  loadingTextContainer: { alignItems: "center", marginTop: 60 },
+  loadingText: { fontSize: 18, fontFamily: "Poppins_600SemiBold", color: "#2D2A26", marginBottom: 16 },
 });

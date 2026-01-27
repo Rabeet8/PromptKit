@@ -7,8 +7,7 @@ import {
   ListChecks,
   LogOut,
   ScanText,
-  UserRound,
-  Wand2
+  UserRound
 } from "lucide-react-native";
 
 import CustomAlert from "@/components/CustomAlert";
@@ -60,9 +59,7 @@ export default function HomeScreen() {
           }
         }
       } catch (error: any) {
-        // Suppress permission errors likely due to restricted rules
         if (error.message && error.message.includes("Permission denied")) {
-          // Silent fail
         } else {
           console.warn("Failed to fetch user name:", error);
         }
@@ -71,7 +68,6 @@ export default function HomeScreen() {
 
     fetchUserName();
 
-    // Entrance animations
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -138,7 +134,6 @@ export default function HomeScreen() {
               },
             ]}
           >
-            {/* Logout Button */}
             <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
               <LinearGradient
                 colors={["#FFFFFF", "#F8F8F8"]}
@@ -148,16 +143,7 @@ export default function HomeScreen() {
               </LinearGradient>
             </TouchableOpacity>
 
-            {/* Greeting Section */}
             <View style={styles.greetingContainer}>
-              <View style={styles.greetingIconContainer}>
-                <LinearGradient
-                  colors={["#FF9F4A", "#FF6B35"]}
-                  style={styles.greetingIconGradient}
-                >
-                  <Wand2 size={28} color="#FFFFFF" strokeWidth={2.5} />
-                </LinearGradient>
-              </View>
               <Text style={styles.greeting}>
                 Hello {firstName}! 👋
               </Text>
@@ -166,7 +152,6 @@ export default function HomeScreen() {
               </Text>
             </View>
 
-            {/* Feature Grid */}
             <View style={styles.grid}>
               <FeatureCard
                 icon={<ScanText size={32} color="#1E3A8A" strokeWidth={2.3} />}

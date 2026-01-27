@@ -56,9 +56,9 @@ export default function RootLayout() {
           headerShown: false,
           animation: "slide_from_right",
           gestureEnabled: true,
+          contentStyle: { backgroundColor: "#FAF7F2" },
         }}
       >
-        {/* Correct screen paths — index.tsx auto-detected */}
         <Stack.Screen name="screens/Onboarding" />
         <Stack.Screen name="screens/Auth" />
         <Stack.Screen name="screens/Home" />
