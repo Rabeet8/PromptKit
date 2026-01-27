@@ -21,7 +21,7 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "config": {},
-      "package": "com.rabeet8.PromptKit"
+      "package": "com.PromptKit"
     },
     "web": {
       "output": "static",
