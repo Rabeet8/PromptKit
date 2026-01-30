@@ -206,7 +206,6 @@ export default function ProfileScreen() {
           />
         }
       >
-        {/* PROFILE HEADER START */}
         <View style={styles.profileHeader}>
           <LinearGradient
             colors={["#FF9F4A", "#FF6B35"]}
@@ -221,9 +220,6 @@ export default function ProfileScreen() {
             <Text style={styles.profileRole}>{userType || "User"}</Text>
           </View>
         </View>
-        {/* PROFILE HEADER END */}
-
-        {/* STATS GRID START */}
         <Text style={styles.sectionTitle}>Your Activity</Text>
         <View style={styles.statsGrid}>
           <StatCard

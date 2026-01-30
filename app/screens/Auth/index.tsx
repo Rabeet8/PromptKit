@@ -179,6 +179,13 @@ export default function AuthScreen() {
               <Text style={styles.forgotText}>Forgot Password?</Text>
             </TouchableOpacity>
           )}
+
+          <TouchableOpacity
+            style={styles.forgotBtn}
+            onPress={() => router.push("/screens/Onboarding")}
+          >
+            <Text style={styles.forgotText}>Go to Onboarding</Text>
+          </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
 

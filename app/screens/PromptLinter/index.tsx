@@ -18,15 +18,16 @@ import DescriptionInput from "@/components/DescriptionCard.tsx";
 import Header from "@/components/Header";
 
 import { LintAPI } from "@/api/lint";
+import { useSubscription } from "@/contexts/SubscriptionContext";
 import {
   logInferenceError,
   logInferenceStart,
   logInferenceSuccess,
 } from "@/utils/inferenceLogger";
-import { trackServiceUsage } from "@/utils/usageTracker";
 
 export default function PromptLinterScreen() {
   const router = useRouter();
+  const { checkAccess, incrementUsage } = useSubscription();
   const fadeAnim = useState(new Animated.Value(0))[0];
   const slideAnim = useState(new Animated.Value(20))[0];
 
@@ -72,6 +73,8 @@ export default function PromptLinterScreen() {
     const requestData = { prompt, model: "gpt-4o-mini" };
     const startTime = logInferenceStart("promptLinter", requestData);
 
+    if (!checkAccess()) return;
+
     try {
       setLoading(true);
       const res = await LintAPI.lintPrompt(requestData);
@@ -81,7 +84,9 @@ export default function PromptLinterScreen() {
       setImprovedPrompt(res.improved_prompt || "");
       setAnalysis(res.analysis || "");
 
-      await trackServiceUsage("promptLinter");
+      setAnalysis(res.analysis || "");
+
+      await incrementUsage("promptLinter");
       await logInferenceSuccess("promptLinter", requestData, res, startTime);
     } catch (error) {
       await logInferenceError("promptLinter", requestData, error, startTime);

@@ -4,6 +4,7 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 
 import { AuthProvider } from "@/contexts/AuthContext";
+import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import {
   Poppins_400Regular,
   Poppins_500Medium,
@@ -49,27 +50,29 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
-      <StatusBar style="dark" backgroundColor="#FAF7F2" />
+      <SubscriptionProvider>
+        <StatusBar style="dark" backgroundColor="#FAF7F2" />
 
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          animation: "slide_from_right",
-          gestureEnabled: true,
-          contentStyle: { backgroundColor: "#FAF7F2" },
-        }}
-      >
-        <Stack.Screen name="screens/Onboarding" />
-        <Stack.Screen name="screens/Auth" />
-        <Stack.Screen name="screens/Home" />
-        <Stack.Screen name="screens/UserInfo" />
-        <Stack.Screen name="screens/TokenCalculator" />
-        <Stack.Screen name="screens/PromptLinter" />
-        <Stack.Screen name="screens/SchemaGenerator" />
-        <Stack.Screen name="screens/LLMCostCalculator" />
-        <Stack.Screen name="screens/ResetPassword" />
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            animation: "slide_from_right",
+            gestureEnabled: true,
+            contentStyle: { backgroundColor: "#FAF7F2" },
+          }}
+        >
+          <Stack.Screen name="screens/Onboarding" />
+          <Stack.Screen name="screens/Auth" />
+          <Stack.Screen name="screens/Home" />
+          <Stack.Screen name="screens/UserInfo" />
+          <Stack.Screen name="screens/TokenCalculator" />
+          <Stack.Screen name="screens/PromptLinter" />
+          <Stack.Screen name="screens/SchemaGenerator" />
+          <Stack.Screen name="screens/LLMCostCalculator" />
+          <Stack.Screen name="screens/ResetPassword" />
 
-      </Stack>
+        </Stack>
+      </SubscriptionProvider>
     </AuthProvider>
   );
 }

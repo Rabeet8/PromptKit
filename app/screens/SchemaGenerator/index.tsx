@@ -18,8 +18,8 @@ import DescriptionInput from "@/components/DescriptionCard.tsx";
 import Header from "@/components/Header";
 
 import { SchemaAPI } from "@/api/schema";
-import { trackServiceUsage } from "@/utils/usageTracker";
 
+import { useSubscription } from "@/contexts/SubscriptionContext";
 import {
   logInferenceError,
   logInferenceStart,
@@ -28,6 +28,7 @@ import {
 
 export default function SchemaGenerator() {
   const router = useRouter();
+  const { checkAccess, incrementUsage } = useSubscription();
   const fadeAnim = useState(new Animated.Value(0))[0];
   const slideAnim = useState(new Animated.Value(20))[0];
 
@@ -81,6 +82,8 @@ export default function SchemaGenerator() {
 
     const startTime = logInferenceStart("schemaGenerator", requestData);
 
+    if (!checkAccess()) return;
+
     try {
       setLoading(true);
       const res = await SchemaAPI.generateSchema(requestData);
@@ -89,7 +92,9 @@ export default function SchemaGenerator() {
       setValidExample(JSON.stringify(res.valid_example, null, 2));
       setInvalidExample(JSON.stringify(res.invalid_example, null, 2));
 
-      await trackServiceUsage("schemaGenerator");
+      setInvalidExample(JSON.stringify(res.invalid_example, null, 2));
+
+      await incrementUsage("schemaGenerator");
       await logInferenceSuccess("schemaGenerator", requestData, res, startTime);
     } catch (err: any) {
       const errorMessage = err.message || "An error occurred during schema generation.";

@@ -283,7 +283,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         backgroundColor: "rgba(255, 255, 255, 0.8)",
         borderRadius: 20,
-        marginTop: 50,
+        marginTop: 20,
     },
     skipText: {
         fontSize: 15,

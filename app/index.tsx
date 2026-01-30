@@ -1,10 +1,12 @@
+import { useAuth } from "@/contexts/AuthContext";
 import { Redirect } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { hasCompletedOnboarding } from "./screens/Onboarding";
 
 export default function Index() {
-  const [isLoading, setIsLoading] = useState(true);
+  const { user, loading: authLoading } = useAuth();
+  const [isNavigationReady, setIsNavigationReady] = useState(false);
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState(false);
 
   useEffect(() => {
@@ -14,10 +16,11 @@ export default function Index() {
   const checkOnboardingStatus = async () => {
     const completed = await hasCompletedOnboarding();
     setHasSeenOnboarding(completed);
-    setIsLoading(false);
+    setIsNavigationReady(true);
   };
 
-  if (isLoading) {
+  // Wait for both auth check and onboarding check
+  if (authLoading || !isNavigationReady) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#FAF7F2" }}>
         <ActivityIndicator size="large" color="#2D2A26" />
@@ -27,6 +30,10 @@ export default function Index() {
 
   if (!hasSeenOnboarding) {
     return <Redirect href="/screens/Onboarding" />;
+  }
+
+  if (user) {
+    return <Redirect href="/screens/Home" />;
   }
 
   return <Redirect href="/screens/Auth" />;

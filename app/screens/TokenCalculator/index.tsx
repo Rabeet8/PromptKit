@@ -12,15 +12,16 @@ import ModelDropdown from "@/components/modelDropdown";
 
 import { ModelsAPI } from "@/api/models";
 import { TokenizeAPI } from "@/api/tokenize";
+import { useSubscription } from "@/contexts/SubscriptionContext";
 import {
   logInferenceError,
   logInferenceStart,
   logInferenceSuccess,
 } from "@/utils/inferenceLogger";
-import { trackServiceUsage } from "@/utils/usageTracker";
 
 export default function TokenCalculatorScreen() {
   const router = useRouter();
+  const { checkAccess, incrementUsage } = useSubscription();
   const fadeAnim = useState(new Animated.Value(0))[0];
   const slideAnim = useState(new Animated.Value(20))[0];
 
@@ -92,6 +93,8 @@ export default function TokenCalculatorScreen() {
 
     const startTime = logInferenceStart("tokenCalculator", requestData);
 
+    if (!checkAccess()) return;
+
     try {
       setLoading(true);
       const res = await TokenizeAPI.tokenize(requestData);
@@ -107,7 +110,7 @@ export default function TokenCalculatorScreen() {
       setCharacterCount(res.characters);
       setApprox(res.approx);
 
-      await trackServiceUsage("tokenCalculator");
+      await incrementUsage("tokenCalculator");
       await logInferenceSuccess("tokenCalculator", requestData, res, startTime);
     } catch (err: any) {
       const errorMessage = err.message || "An error occurred during tokenization.";

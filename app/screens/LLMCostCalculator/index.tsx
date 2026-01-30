@@ -14,11 +14,12 @@ import Header from "@/components/Header";
 import InputCard from "@/components/InputCard";
 import InputRow from "@/components/InputRows";
 import ModelDropdown from "@/components/modelDropdown";
+import { useSubscription } from "@/contexts/SubscriptionContext";
 import { logInferenceError, logInferenceStart, logInferenceSuccess } from "@/utils/inferenceLogger";
-import { trackServiceUsage } from "@/utils/usageTracker";
 
 export default function CostCalculatorScreen() {
   const router = useRouter();
+  const { checkAccess, incrementUsage } = useSubscription();
   const fadeAnim = useState(new Animated.Value(0))[0];
   const slideAnim = useState(new Animated.Value(20))[0];
 
@@ -100,6 +101,9 @@ export default function CostCalculatorScreen() {
 
     const startTime = logInferenceStart("llmCostCalculator", requestData);
 
+    // 🔒 Check subscription limit
+    if (!checkAccess()) return;
+
     try {
       setLoading(true);
 
@@ -111,7 +115,7 @@ export default function CostCalculatorScreen() {
       setMonthlyCache(res.monthly_cost_with_cache.toString());
 
       // Track usage
-      await trackServiceUsage("llmCostCalculator");
+      await incrementUsage("llmCostCalculator");
 
       // Log successful inference
       await logInferenceSuccess("llmCostCalculator", requestData, res, startTime);
