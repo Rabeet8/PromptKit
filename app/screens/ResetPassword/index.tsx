@@ -1,10 +1,12 @@
+import CustomAlert from "@/components/CustomAlert";
 import { auth } from "@/config/firebase";
 import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { sendPasswordResetEmail } from "firebase/auth";
-import { Mail } from "lucide-react-native";
-import React, { useState } from "react";
+import { ArrowLeft, Mail } from "lucide-react-native";
+import { useState } from "react";
 import {
-  Alert,
+  Dimensions,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -12,17 +14,35 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import Svg, { Path } from "react-native-svg";
+
+const { width, height } = Dimensions.get("window");
 
 export default function ResetPasswordScreen() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  // Custom Alert State
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertTitle, setAlertTitle] = useState("");
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState<"error" | "success" | "info">("info");
+
+  const showAlert = (title: string, message: string, type: "error" | "success" | "info" = "info") => {
+    setAlertTitle(title);
+    setAlertMessage(message);
+    setAlertType(type);
+    setAlertVisible(true);
+  };
+
   const handleReset = async () => {
     if (!email) {
-      Alert.alert("Error", "Please enter your email address.");
+      showAlert("Error", "Please enter your email address.", "error");
       return;
     }
 
@@ -30,185 +50,223 @@ export default function ResetPasswordScreen() {
 
     try {
       await sendPasswordResetEmail(auth, email);
-      Alert.alert("Success", "Password reset link has been sent to your email.");
-      router.back();
+      showAlert("Success", "Password reset link has been sent to your email.", "success");
     } catch (error: any) {
-      Alert.alert("Error", error.message);
+      showAlert("Error", error.message, "error");
     }
 
     setLoading(false);
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.wrapper}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
+    <SafeAreaView style={styles.container} edges={["top"]}>
+      <StatusBar style="light" backgroundColor="#2B2A28" />
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        {/* HEADER */}
-        <View style={styles.headerBlock}>
+        <View style={styles.topSection}>
+          <Svg
+            height={height * 0.4}
+            width={width}
+            viewBox={`0 0 ${width} ${height * 0.4}`}
+            style={styles.curve}
+          >
+            <Path
+              d={`M0,0 L${width},0 L${width},${height * 0.32} Q${width * 0.75},${height * 0.38} ${width / 2},${height * 0.35} Q${width * 0.25},${height * 0.32} 0,${height * 0.38} Z`}
+              fill="#2B2A28"
+            />
+          </Svg>
+
+          {/* BACK BUTTON */}
+          <TouchableOpacity
+            style={styles.backBtnWrapper}
+            onPress={() => router.back()}
+          >
+            <ArrowLeft size={24} color="#FAF7F2" />
+          </TouchableOpacity>
+
+          {/* TITLE */}
           <Text style={styles.title}>Reset Password</Text>
-          <Text style={styles.subtitle}>
-            Enter your email to receive a reset link.
-          </Text>
         </View>
 
-        {/* CARD */}
-        <View style={styles.card}>
-          <Text style={styles.label}>Email address</Text>
-
+        {/* FORM SECTION */}
+        <ScrollView
+          style={styles.formSection}
+          contentContainerStyle={styles.formContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Text style={styles.description}>
+            Enter your email regarding your account and we will send you a link to reset your password.
+          </Text>
+          <Text style={styles.label}>Email Address</Text>
           <View style={styles.inputWrapper}>
-            <Mail size={20} color="#8C877F" />
+            <Mail size={20} color="#2B2A28" />
             <TextInput
-              placeholder="user@example.com"
-              placeholderTextColor="#B7B7B7"
+              placeholder="hannadowie@gmail.com"
+              placeholderTextColor="#8C877F"
+              autoCapitalize="none"
+              keyboardType="email-address"
               value={email}
               onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
               style={styles.input}
             />
           </View>
 
-          {/* SEND BUTTON */}
           <Pressable
             onPress={handleReset}
             disabled={loading}
             style={({ pressed }) => [
-              styles.primaryBtn,
-              loading && styles.primaryBtnDisabled,
-              { transform: [{ scale: pressed ? 0.97 : 1 }] },
+              styles.sendBtn,
+              loading && styles.disabledBtn,
+              { transform: [{ scale: pressed ? 0.98 : 1 }] },
             ]}
           >
-            <Text style={styles.primaryBtnText}>
-              {loading ? "Sending..." : "Send Reset Email"}
+            <Text style={styles.sendBtnText}>
+              {loading ? "Sending..." : "Send Reset Link"}
             </Text>
           </Pressable>
 
-          {/* BACK */}
-          <Pressable onPress={() => router.back()} style={styles.backBtn}>
-            <Text style={styles.backText}> Back to Login</Text>
-          </Pressable>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+
+      <CustomAlert
+        visible={alertVisible}
+        title={alertTitle}
+        message={alertMessage}
+        type={alertType}
+        onClose={() => setAlertVisible(false)}
+      />
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
+  container: {
     flex: 1,
     backgroundColor: "#FAF7F2",
   },
 
-  scrollContent: {
-    padding: 28,
-    paddingTop: 70,
-    paddingBottom: 60,
+  topSection: {
+    position: "relative",
+    height: height * 0.4,
   },
 
-  /* HEADER */
-  headerBlock: {
-    alignItems: "center",
-    marginBottom: 30,
+  curve: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+  },
+
+  backBtnWrapper: {
+    position: "absolute",
+    top: 50, // Adjusted for better safe area placement
+    left: 24,
+    padding: 10,
+    zIndex: 10,
+    backgroundColor: "rgba(0,0,0,0.2)",
+    borderRadius: 50,
   },
 
   title: {
-    fontSize: 30,
+    position: "absolute",
+    bottom: height * 0.08,
+    left: 0,
+    right: 0,
+    fontSize: 34, // Slightly larger
     fontFamily: "Poppins_700Bold",
-    color: "#2D2A26",
-  },
-
-  subtitle: {
-    fontSize: 14,
-    color: "#7A746D",
-    marginTop: 4,
+    color: "#FAF7F2",
     textAlign: "center",
-    fontFamily: "Poppins_500Medium",
+    textShadowColor: "rgba(0, 0, 0, 0.1)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
 
-  /* CARD */
-  card: {
-    backgroundColor: "#FFFFFF",
-    padding: 26,
-    borderRadius: 20,
+  /* FORM SECTION */
+  formSection: {
+    flexGrow: 0,
+    flexShrink: 1,
+    backgroundColor: "#FAF7F2",
+  },
 
-    shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 5 },
+  formContent: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 100,
+  },
+
+  description: {
+    fontSize: 15,
+    fontFamily: "Poppins_500Medium",
+    color: "#7A746D",
+    marginBottom: 40,
+    marginTop: 10,
+    textAlign: "center",
+    lineHeight: 24,
+    paddingHorizontal: 10,
   },
 
   label: {
     fontSize: 14,
     fontFamily: "Poppins_600SemiBold",
-    color: "#2D2A26",
-    marginBottom: 8,
+    color: "#2B2A28",
+    marginBottom: 10,
+    marginLeft: 4,
   },
 
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F9F6F2",
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: "#E6E2DD",
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    gap: 10,
+    backgroundColor: "#FFFFFF", // White background for pop
+    borderRadius: 18, // Slightly softer corners
+    paddingHorizontal: 20,
+    paddingVertical: 18, // Taller touch target
+    borderWidth: 2,
+    borderColor: "#2B2A28",
+    gap: 14,
 
+    // Subtle shadow lift
     shadowColor: "#000",
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
 
   input: {
     flex: 1,
-    fontSize: 15.5,
-    fontFamily: "Poppins_500Medium",
-    color: "#2D2A26",
-  },
-
-  /* BUTTON */
-  primaryBtn: {
-    backgroundColor: "#2D2A26",
-    marginTop: 22,
-    paddingVertical: 16,
-    borderRadius: 14,
-
-    shadowColor: "#000",
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-  },
-
-  primaryBtnDisabled: {
-    opacity: 0.6,
-  },
-
-  primaryBtnText: {
-    color: "#FFFFFF",
     fontSize: 16,
-    textAlign: "center",
-    fontFamily: "Poppins_600SemiBold",
-    letterSpacing: 0.3,
-  },
-
-  /* BACK BUTTON */
-  backBtn: {
-    marginTop: 18,
-    alignItems: "center",
-  },
-
-  backText: {
-    fontSize: 15,
-    color: "#2D2A26",
     fontFamily: "Poppins_500Medium",
-    textDecorationLine: "underline",
+    color: "#2B2A28",
+  },
+
+  sendBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#2B2A28",
+    borderRadius: 18,
+    paddingVertical: 20, // Taller button
+    marginTop: 32,
+
+    // Enhanced shadow
+    shadowColor: "#2B2A28",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+
+  disabledBtn: {
+    opacity: 0.7,
+  },
+
+  sendBtnText: {
+    fontSize: 17,
+    fontFamily: "Poppins_600SemiBold",
+    color: "#FAF7F2",
+    letterSpacing: 0.5,
   },
 });
+

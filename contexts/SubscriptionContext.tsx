@@ -22,7 +22,7 @@ export const useSubscription = () => useContext(SubscriptionContext);
 export function SubscriptionProvider({ children }: { children: React.ReactNode }) {
     const { user } = useAuth();
     const [usageCount, setUsageCount] = useState(0);
-    const [isPremium, setIsPremium] = useState(false); // Default to free tier
+    const [isPremium, setIsPremium] = useState(false);
     const [paywallVisible, setPaywallVisible] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
