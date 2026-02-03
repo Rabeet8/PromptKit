@@ -2,7 +2,8 @@ import CustomAlert from "@/components/CustomAlert";
 import { auth, database } from "@/config/firebase";
 import { getAllServiceUsage } from "@/utils/usageTracker";
 import { useRouter } from "expo-router";
-import { get, ref, set } from "firebase/database";
+import { deleteUser } from "firebase/auth";
+import { get, ref, remove, set } from "firebase/database";
 import { useCallback, useEffect, useState } from "react";
 import {
   Animated,
@@ -50,11 +51,36 @@ export default function ProfileScreen() {
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
   const [modalType, setModalType] = useState<"error" | "success" | "info">("info");
+  const [modalButtonText, setModalButtonText] = useState("OK");
+  const [modalShowCancel, setModalShowCancel] = useState(false);
+  const [modalOnConfirm, setModalOnConfirm] = useState<(() => void) | undefined>(undefined);
+  const [modalConfirmColor, setModalConfirmColor] = useState("#2B2A28");
 
   const showAlert = (title: string, message: string, type: "error" | "success" | "info" = "info") => {
     setModalTitle(title);
     setModalMessage(message);
     setModalType(type);
+    setModalButtonText("OK");
+    setModalShowCancel(false);
+    setModalOnConfirm(undefined);
+    setModalConfirmColor("#2B2A28");
+    setModalVisible(true);
+  };
+
+  const showConfirmation = (
+    title: string,
+    message: string,
+    onConfirm: () => void,
+    confirmText: string = "Confirm",
+    confirmColor: string = "#2B2A28"
+  ) => {
+    setModalTitle(title);
+    setModalMessage(message);
+    setModalType("error"); // Use error type for destructive actions usually, or add 'warning'
+    setModalButtonText(confirmText);
+    setModalShowCancel(true);
+    setModalOnConfirm(() => onConfirm);
+    setModalConfirmColor(confirmColor);
     setModalVisible(true);
   };
 
@@ -136,17 +162,51 @@ export default function ProfileScreen() {
         email: user.email,
       });
 
-
-
-      showAlert("Success", "Profile updated successfully.", "success");
-
-      router.replace("/screens/Home");
+      showAlert("Success", "Changes are saved.", "success");
 
     } catch (error: any) {
       showAlert("Error", error.message, "error");
     }
 
     setLoading(false);
+  };
+
+  const handleDeleteAccount = async () => {
+    showConfirmation(
+      "Delete Account",
+      "Are you sure you want to delete your account? This action cannot be undone.",
+      async () => {
+        setModalVisible(false); // Close confirmation modal immediately
+
+        const user = auth.currentUser;
+        if (!user) {
+          showAlert("Error", "No user found.", "error");
+          return;
+        }
+
+        setLoading(true);
+        try {
+          await remove(ref(database, `users/${user.uid}`));
+          await deleteUser(user);
+          router.replace("/screens/Auth");
+        } catch (error: any) {
+          console.error("Delete Account Error:", error);
+          if (error.code === "auth/requires-recent-login") {
+            showAlert(
+              "Security Check",
+              "Please log out and log in again to delete your account for security reasons.",
+              "info"
+            );
+          } else {
+            showAlert("Error", "Failed to delete account: " + error.message, "error");
+          }
+        } finally {
+          setLoading(false);
+        }
+      },
+      "Delete",
+      "#DC2626"
+    );
   };
 
 
@@ -332,12 +392,20 @@ export default function ProfileScreen() {
           />
         </View>
 
-        <View style={{ marginTop: 24 }}>
+        <View style={{ marginTop: 24, gap: 12 }}>
           <PrimaryButton
             label={loading ? "Saving Profile..." : "Save Changes"}
             onPress={handleSave}
             disabled={loading}
           />
+
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={handleDeleteAccount}
+            disabled={loading}
+          >
+            <Text style={styles.deleteButtonText}>Delete Account</Text>
+          </TouchableOpacity>
         </View>
       </Animated.ScrollView>
 
@@ -346,7 +414,11 @@ export default function ProfileScreen() {
         title={modalTitle}
         message={modalMessage}
         type={modalType}
-        onClose={() => setModalVisible(false)}
+        onClose={modalOnConfirm || (() => setModalVisible(false))}
+        buttonText={modalButtonText}
+        showCancelButton={modalShowCancel}
+        onCancel={() => setModalVisible(false)}
+        confirmButtonColor={modalConfirmColor}
       />
     </View>
   );
@@ -511,6 +583,21 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
   },
 
+  deleteButton: {
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 16,
+    backgroundColor: '#FEE2E2', // light red background
+    borderWidth: 1,
+    borderColor: '#FECACA',
+  },
+  deleteButtonText: {
+    fontSize: 16,
+    fontFamily: 'Poppins_600SemiBold',
+    color: '#DC2626', // red text
+  },
+
   // Skeleton
   loadingContainer: { flex: 1, justifyContent: "center", paddingHorizontal: 20 },
   loadingHeader: { flexDirection: "row", alignItems: "center", gap: 16, marginBottom: 40, paddingTop: 60 },
@@ -521,3 +608,4 @@ const styles = StyleSheet.create({
   loadingTextContainer: { alignItems: "center", marginTop: 60 },
   loadingText: { fontSize: 18, fontFamily: "Poppins_600SemiBold", color: "#2D2A26", marginBottom: 16 },
 });
+

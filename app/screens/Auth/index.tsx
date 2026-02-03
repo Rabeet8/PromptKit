@@ -1,5 +1,10 @@
 import CustomAlert from "@/components/CustomAlert";
 import { auth } from "@/config/firebase";
+import {
+  getAuthErrorMessage,
+  validateEmail,
+  validatePassword,
+} from "@/utils/authValidation";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import {
@@ -52,6 +57,17 @@ export default function AuthScreen() {
       showAlert("Error", "Please fill in all fields.", "error");
       return;
     }
+
+    if (!validateEmail(email)) {
+      showAlert("Error", "Please enter a valid email address.", "error");
+      return;
+    }
+
+    if (!validatePassword(password)) {
+      showAlert("Error", "Password must be at least 6 characters long.", "error");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -63,7 +79,8 @@ export default function AuthScreen() {
         router.replace("/screens/UserInfo");
       }
     } catch (error: any) {
-      showAlert("Error", error.message, "error");
+      const friendlyMessage = getAuthErrorMessage(error.code);
+      showAlert("Error", friendlyMessage, "error");
     }
 
     setLoading(false);
@@ -128,7 +145,6 @@ export default function AuthScreen() {
             />
           </View>
 
-          {/* PASSWORD INPUT */}
           <Text style={styles.label}>Password</Text>
           <View style={styles.inputWrapper}>
             <TextInput
@@ -151,7 +167,6 @@ export default function AuthScreen() {
             </Pressable>
           </View>
 
-          {/* SIGN IN BUTTON */}
           <Pressable
             onPress={handleAuth}
             disabled={loading}
@@ -170,7 +185,6 @@ export default function AuthScreen() {
             </Text>
           </Pressable>
 
-          {/* FORGOT PASSWORD */}
           {mode === "login" && (
             <TouchableOpacity
               style={styles.forgotBtn}
@@ -207,7 +221,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#FAF7F2",
   },
 
-  /* TOP CURVED SECTION */
   topSection: {
     position: "relative",
     height: height * 0.4,
@@ -250,7 +263,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 
-  /* FORM SECTION */
   formSection: {
     flexGrow: 0,
     flexShrink: 1,
@@ -259,8 +271,8 @@ const styles = StyleSheet.create({
 
   formContent: {
     paddingHorizontal: 28,
-    paddingTop: 10,
-    paddingBottom: 100,
+    paddingBottom: 10,
+    marginTop: -10,
   },
 
   label: {

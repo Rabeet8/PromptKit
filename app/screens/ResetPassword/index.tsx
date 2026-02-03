@@ -1,5 +1,6 @@
 import CustomAlert from "@/components/CustomAlert";
 import { auth } from "@/config/firebase";
+import { getAuthErrorMessage, validateEmail } from "@/utils/authValidation";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { sendPasswordResetEmail } from "firebase/auth";
@@ -46,13 +47,19 @@ export default function ResetPasswordScreen() {
       return;
     }
 
+    if (!validateEmail(email)) {
+      showAlert("Error", "Please enter a valid email address.", "error");
+      return;
+    }
+
     setLoading(true);
 
     try {
       await sendPasswordResetEmail(auth, email);
-      showAlert("Success", "Password reset link has been sent to your email.", "success");
+      showAlert("Success", "Verification link sent to your email. Make sure to check your spam folder.", "success");
     } catch (error: any) {
-      showAlert("Error", error.message, "error");
+      const friendlyMessage = getAuthErrorMessage(error.code);
+      showAlert("Error", friendlyMessage, "error");
     }
 
     setLoading(false);
@@ -78,7 +85,6 @@ export default function ResetPasswordScreen() {
             />
           </Svg>
 
-          {/* BACK BUTTON */}
           <TouchableOpacity
             style={styles.backBtnWrapper}
             onPress={() => router.back()}
@@ -86,11 +92,9 @@ export default function ResetPasswordScreen() {
             <ArrowLeft size={24} color="#FAF7F2" />
           </TouchableOpacity>
 
-          {/* TITLE */}
           <Text style={styles.title}>Reset Password</Text>
         </View>
 
-        {/* FORM SECTION */}
         <ScrollView
           style={styles.formSection}
           contentContainerStyle={styles.formContent}
@@ -192,8 +196,8 @@ const styles = StyleSheet.create({
 
   formContent: {
     paddingHorizontal: 20,
-    paddingTop: 20,
     paddingBottom: 100,
+    marginTop: -10,
   },
 
   description: {

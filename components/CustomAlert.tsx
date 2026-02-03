@@ -1,4 +1,4 @@
-import { AlertCircle, CheckCircle, XCircle } from "lucide-react-native";
+import { AlertCircle, CheckCircle, X, XCircle } from "lucide-react-native";
 import { useEffect, useRef } from "react";
 import {
     Animated,
@@ -19,6 +19,10 @@ interface CustomAlertProps {
     type?: "error" | "success" | "info";
     onClose: () => void;
     buttonText?: string;
+    showCancelButton?: boolean;
+    cancelText?: string;
+    onCancel?: () => void;
+    confirmButtonColor?: string;
 }
 
 export default function CustomAlert({
@@ -28,6 +32,10 @@ export default function CustomAlert({
     type = "info",
     onClose,
     buttonText = "OK",
+    showCancelButton = false,
+    cancelText = "Cancel",
+    onCancel,
+    confirmButtonColor = "#2B2A28",
 }: CustomAlertProps) {
     const scaleAnim = useRef(new Animated.Value(0)).current;
     const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -100,6 +108,15 @@ export default function CustomAlert({
                         { transform: [{ scale: scaleAnim }] },
                     ]}
                 >
+                    {/* Close Button (X) */}
+                    <Pressable
+                        onPress={onCancel || onClose}
+                        style={styles.closeButton}
+                        hitSlop={10}
+                    >
+                        <X size={24} color="#9CA3AF" />
+                    </Pressable>
+
                     {/* Icon */}
                     <View style={[styles.iconContainer, { backgroundColor: getIconBgColor() }]}>
                         {getIcon()}
@@ -111,16 +128,32 @@ export default function CustomAlert({
                     {/* Message */}
                     <Text style={styles.message}>{message}</Text>
 
-                    {/* Button */}
-                    <Pressable
-                        onPress={onClose}
-                        style={({ pressed }) => [
-                            styles.button,
-                            { transform: [{ scale: pressed ? 0.98 : 1 }] },
-                        ]}
-                    >
-                        <Text style={styles.buttonText}>{buttonText}</Text>
-                    </Pressable>
+                    {/* Buttons */}
+                    <View style={styles.buttonContainer}>
+                        {showCancelButton && (
+                            <Pressable
+                                onPress={onCancel || onClose}
+                                style={({ pressed }) => [
+                                    styles.button,
+                                    styles.cancelButton,
+                                    styles.halfButton,
+                                    { transform: [{ scale: pressed ? 0.98 : 1 }] },
+                                ]}
+                            >
+                                <Text style={styles.cancelButtonText}>{cancelText}</Text>
+                            </Pressable>
+                        )}
+                        <Pressable
+                            onPress={onClose}
+                            style={({ pressed }) => [
+                                styles.button,
+                                showCancelButton ? styles.halfButton : styles.fullButton,
+                                { backgroundColor: confirmButtonColor, transform: [{ scale: pressed ? 0.98 : 1 }] },
+                            ]}
+                        >
+                            <Text style={styles.buttonText}>{buttonText}</Text>
+                        </Pressable>
+                    </View>
                 </Animated.View>
             </Animated.View>
         </Modal>
@@ -153,6 +186,14 @@ const styles = StyleSheet.create({
         shadowRadius: 20,
         shadowOffset: { width: 0, height: 10 },
         elevation: 10,
+        position: 'relative', // Ensure relative positioning for absolute children
+    },
+    closeButton: {
+        position: 'absolute',
+        top: 16,
+        left: 16, // Left top as requested
+        zIndex: 10,
+        padding: 4,
     },
     iconContainer: {
         width: 80,
@@ -177,20 +218,41 @@ const styles = StyleSheet.create({
         lineHeight: 22,
         marginBottom: 24,
     },
-    button: {
-        backgroundColor: "#2B2A28",
-        paddingVertical: 14,
-        paddingHorizontal: 40,
-        borderRadius: 14,
+    buttonContainer: {
+        flexDirection: "row",
+        justifyContent: "space-between",
         width: "100%",
+        gap: 12,
+    },
+    button: {
+        paddingVertical: 14,
+        borderRadius: 14,
         shadowColor: "#000",
         shadowOpacity: 0.15,
         shadowRadius: 10,
         shadowOffset: { width: 0, height: 4 },
         elevation: 5,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    fullButton: {
+        width: "100%",
+    },
+    halfButton: {
+        flex: 1,
+    },
+    cancelButton: {
+        backgroundColor: "#F3F4F6",
     },
     buttonText: {
         color: "#FFFFFF",
+        fontSize: 16,
+        fontFamily: "Poppins_600SemiBold",
+        textAlign: "center",
+        letterSpacing: 0.5,
+    },
+    cancelButtonText: {
+        color: "#4B5563",
         fontSize: 16,
         fontFamily: "Poppins_600SemiBold",
         textAlign: "center",
