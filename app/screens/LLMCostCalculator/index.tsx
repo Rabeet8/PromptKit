@@ -102,7 +102,7 @@ export default function CostCalculatorScreen() {
     const startTime = logInferenceStart("llmCostCalculator", requestData);
 
     // 🔒 Check subscription limit
-    if (!checkAccess()) return;
+    if (!checkAccess("llmCostCalculator")) return;
 
     try {
       setLoading(true);

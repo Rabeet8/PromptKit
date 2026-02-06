@@ -82,7 +82,7 @@ export default function SchemaGenerator() {
 
     const startTime = logInferenceStart("schemaGenerator", requestData);
 
-    if (!checkAccess()) return;
+    if (!checkAccess("schemaGenerator")) return;
 
     try {
       setLoading(true);

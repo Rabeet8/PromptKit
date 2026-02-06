@@ -73,7 +73,7 @@ export default function PromptLinterScreen() {
     const requestData = { prompt, model: "gpt-4o-mini" };
     const startTime = logInferenceStart("promptLinter", requestData);
 
-    if (!checkAccess()) return;
+    if (!checkAccess("promptLinter")) return;
 
     try {
       setLoading(true);

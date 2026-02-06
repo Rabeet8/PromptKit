@@ -93,7 +93,7 @@ export default function TokenCalculatorScreen() {
 
     const startTime = logInferenceStart("tokenCalculator", requestData);
 
-    if (!checkAccess()) return;
+    if (!checkAccess("tokenCalculator")) return;
 
     try {
       setLoading(true);

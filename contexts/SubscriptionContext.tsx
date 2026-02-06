@@ -5,14 +5,14 @@ import { useAuth } from "./AuthContext";
 
 interface SubscriptionContextType {
     isPremium: boolean;
-    checkAccess: () => boolean;
+    checkAccess: (serviceName: string) => boolean;
     incrementUsage: (serviceName: string) => Promise<void>;
     isLoading: boolean;
 }
 
 const SubscriptionContext = createContext<SubscriptionContextType>({
     isPremium: false,
-    checkAccess: () => false,
+    checkAccess: (serviceName: string) => false,
     incrementUsage: async () => { },
     isLoading: true,
 });
@@ -21,14 +21,14 @@ export const useSubscription = () => useContext(SubscriptionContext);
 
 export function SubscriptionProvider({ children }: { children: React.ReactNode }) {
     const { user } = useAuth();
-    const [usageCount, setUsageCount] = useState(0);
+    const [usageMap, setUsageMap] = useState<Record<string, number>>({});
     const [isPremium, setIsPremium] = useState(false);
     const [paywallVisible, setPaywallVisible] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         if (!user) {
-            setUsageCount(0);
+            setUsageMap({});
             setIsLoading(false);
             return;
         }
@@ -36,9 +36,8 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
         const loadUsage = async () => {
             try {
                 const usageData = await getAllServiceUsage();
-                const total = Object.values(usageData).reduce((acc, curr) => acc + curr, 0);
-                console.log("📊 Total usage loaded:", total);
-                setUsageCount(total);
+                console.log("📊 Usage loaded:", usageData);
+                setUsageMap(usageData);
             } catch (error) {
                 console.error("Failed to load usage:", error);
             } finally {
@@ -49,10 +48,12 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
         loadUsage();
     }, [user]);
 
-    const checkAccess = () => {
+    const checkAccess = (serviceName: string) => {
         if (isPremium) return true;
 
-        if (usageCount >= 2) {
+        const count = usageMap[serviceName] || 0;
+
+        if (count >= 2) {
             setPaywallVisible(true);
             return false;
         }
@@ -63,8 +64,10 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     const incrementUsage = async (serviceName: string) => {
         if (isPremium) return;
 
-        const newCount = usageCount + 1;
-        setUsageCount(newCount);
+        setUsageMap(prev => ({
+            ...prev,
+            [serviceName]: (prev[serviceName] || 0) + 1
+        }));
 
         await trackServiceUsage(serviceName);
     };
