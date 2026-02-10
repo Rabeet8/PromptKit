@@ -1,5 +1,6 @@
 import CustomAlert from "@/components/CustomAlert";
 import { auth, database } from "@/config/firebase";
+import { useSubscription } from "@/contexts/SubscriptionContext";
 import { getAllServiceUsage } from "@/utils/usageTracker";
 import { useRouter } from "expo-router";
 import { deleteUser } from "firebase/auth";
@@ -16,7 +17,8 @@ import {
 } from "react-native";
 
 import { LinearGradient } from "expo-linear-gradient";
-import { BadgeDollarSign, Calculator, FileJson, ListChecks } from "lucide-react-native";
+import * as WebBrowser from "expo-web-browser";
+import { BadgeDollarSign, Calculator, ChevronRight, Crown, ExternalLink, FileJson, ListChecks } from "lucide-react-native";
 
 import PrimaryButton from "@/components/Button.tsx";
 import DescriptionInput from "@/components/DescriptionCard.tsx";
@@ -24,6 +26,7 @@ import Header from "@/components/Header";
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const { isPremium } = useSubscription();
   const fadeAnim = useState(new Animated.Value(0))[0];
   const slideAnim = useState(new Animated.Value(20))[0];
 
@@ -278,6 +281,15 @@ export default function ProfileScreen() {
           <View style={styles.profileInfo}>
             <Text style={styles.profileEmail}>{auth.currentUser?.email}</Text>
             <Text style={styles.profileRole}>{userType || "User"}</Text>
+
+            <TouchableOpacity
+              style={styles.viewPlansButton}
+              onPress={() => router.push("/screens/Plans" as any)}
+            >
+              <Crown size={14} color="#F59E0B" />
+              <Text style={styles.viewPlansText}>View Plans</Text>
+              <ChevronRight size={14} color="#F59E0B" />
+            </TouchableOpacity>
           </View>
         </View>
         <Text style={styles.sectionTitle}>Your Activity</Text>
@@ -406,6 +418,16 @@ export default function ProfileScreen() {
           >
             <Text style={styles.deleteButtonText}>Delete Account</Text>
           </TouchableOpacity>
+
+          {isPremium && (
+            <TouchableOpacity
+              style={styles.manageSubButton}
+              onPress={() => WebBrowser.openBrowserAsync("https://polar.sh/settings")}
+            >
+              <ExternalLink size={16} color="#6B7280" />
+              <Text style={styles.manageSubText}>Manage Subscription</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </Animated.ScrollView>
 
@@ -473,6 +495,23 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 12,
     overflow: 'hidden',
+    marginBottom: 12,
+  },
+  viewPlansButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: '#FFFBEB',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#FEF3C7',
+  },
+  viewPlansText: {
+    fontSize: 13,
+    fontFamily: "Poppins_600SemiBold",
+    color: "#D97706",
   },
 
   // Titles
@@ -596,6 +635,23 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Poppins_600SemiBold',
     color: '#DC2626', // red text
+  },
+
+  manageSubButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 16,
+    borderRadius: 16,
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  manageSubText: {
+    fontSize: 15,
+    fontFamily: 'Poppins_500Medium',
+    color: '#6B7280',
   },
 
   // Skeleton

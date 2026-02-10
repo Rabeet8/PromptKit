@@ -1,8 +1,10 @@
+import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { SplashScreen, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 
+import AnimatedSplash from "@/components/AnimatedSplash";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import {
@@ -14,6 +16,14 @@ import {
 
 SplashScreen.preventAutoHideAsync();
 
+const AppTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    background: "#FAF7F2",
+  },
+};
+
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
     Poppins_400Regular,
@@ -23,6 +33,7 @@ export default function RootLayout() {
   });
 
   const [appReady, setAppReady] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -51,27 +62,31 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <SubscriptionProvider>
-        <StatusBar style="dark" backgroundColor="#FAF7F2" />
+        <ThemeProvider value={AppTheme}>
+          <StatusBar style="dark" backgroundColor="#FAF7F2" />
 
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            animation: "slide_from_right",
-            gestureEnabled: true,
-            contentStyle: { backgroundColor: "#FAF7F2" },
-          }}
-        >
-          <Stack.Screen name="screens/Onboarding" />
-          <Stack.Screen name="screens/Auth" />
-          <Stack.Screen name="screens/Home" />
-          <Stack.Screen name="screens/UserInfo" />
-          <Stack.Screen name="screens/TokenCalculator" />
-          <Stack.Screen name="screens/PromptLinter" />
-          <Stack.Screen name="screens/SchemaGenerator" />
-          <Stack.Screen name="screens/LLMCostCalculator" />
-          <Stack.Screen name="screens/ResetPassword" />
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              animation: "slide_from_right",
+              gestureEnabled: true,
+              contentStyle: { backgroundColor: "#FAF7F2" },
+            }}
+          >
+            <Stack.Screen name="screens/Onboarding" />
+            <Stack.Screen name="screens/Auth" />
+            <Stack.Screen name="screens/Home" />
+            <Stack.Screen name="screens/UserInfo" />
+            <Stack.Screen name="screens/TokenCalculator" />
+            <Stack.Screen name="screens/PromptLinter" />
+            <Stack.Screen name="screens/SchemaGenerator" />
+            <Stack.Screen name="screens/LLMCostCalculator" />
+            <Stack.Screen name="screens/Plans" />
+            <Stack.Screen name="screens/ResetPassword" />
 
-        </Stack>
+          </Stack>
+          {showSplash && <AnimatedSplash onFinish={() => setShowSplash(false)} />}
+        </ThemeProvider>
       </SubscriptionProvider>
     </AuthProvider>
   );
