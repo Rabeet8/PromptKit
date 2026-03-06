@@ -194,12 +194,12 @@ export default function AuthScreen() {
             </TouchableOpacity>
           )}
 
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.forgotBtn}
             onPress={() => router.push("/screens/Onboarding")}
           >
             <Text style={styles.forgotText}>Go to Onboarding</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </ScrollView>
       </KeyboardAvoidingView>
 

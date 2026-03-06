@@ -113,7 +113,7 @@ export default function TokenCalculatorScreen() {
       await incrementUsage("tokenCalculator");
       await logInferenceSuccess("tokenCalculator", requestData, res, startTime);
     } catch (err: any) {
-      const errorMessage = err.message || "An error occurred during tokenization.";
+      const errorMessage = "This feature is not available at the moment, please contact the team.";
       console.error("❌ Tokenize API Error:", err);
       showAlert("Tokenization Failed", errorMessage, "error");
       await logInferenceError("tokenCalculator", requestData, err, startTime);

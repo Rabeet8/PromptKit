@@ -122,7 +122,8 @@ export default function CostCalculatorScreen() {
 
     } catch (err: any) {
       console.log("Cost API Error:", err);
-      showAlert("Calculation Failed", err.message || "An error occurred.", "error");
+      const errorMessage = "This feature is not available at the moment, please contact the team.";
+      showAlert("Calculation Failed", errorMessage, "error");
       // Log failed inference
       await logInferenceError("llmCostCalculator", requestData, err, startTime);
     } finally {

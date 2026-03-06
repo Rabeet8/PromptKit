@@ -70,6 +70,12 @@ export default function PromptLinterScreen() {
   const handleLint = async () => {
     if (!prompt.trim()) return;
 
+    // Reset old results
+    setScore(null);
+    setIssues([]);
+    setImprovedPrompt("");
+    setAnalysis("");
+
     const requestData = { prompt, model: "gpt-4o-mini" };
     const startTime = logInferenceStart("promptLinter", requestData);
 
@@ -78,6 +84,10 @@ export default function PromptLinterScreen() {
     try {
       setLoading(true);
       const res = await LintAPI.lintPrompt(requestData);
+
+      if (res.error || res.score === undefined || res.score === null || res.analysis?.toLowerCase().includes("error")) {
+        throw new Error(res.error || res.analysis || "Invalid response");
+      }
 
       setScore(res.score);
       setIssues(res.issues || []);
@@ -88,7 +98,9 @@ export default function PromptLinterScreen() {
 
       await incrementUsage("promptLinter");
       await logInferenceSuccess("promptLinter", requestData, res, startTime);
-    } catch (error) {
+    } catch (error: any) {
+      const errorMessage = "This feature is not available at the moment, please contact the team.";
+      showAlert("Analysis Failed", errorMessage, "error");
       await logInferenceError("promptLinter", requestData, error, startTime);
     } finally {
       setLoading(false);

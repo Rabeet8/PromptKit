@@ -3,6 +3,7 @@ import { buildCheckoutUrl, PlanId } from "@/api/polar";
 import Header from "@/components/Header";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
+import { markAsPremium } from "@/utils/subscription";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
@@ -29,15 +30,32 @@ export default function PlansScreen() {
 
             const result = await WebBrowser.openAuthSessionAsync(
                 checkoutUrl,
-                `promptkit://upgrade-success?plan=${planId}`
+                `promptkit://upgrade-success`
             );
 
+            console.log("🔄 Browser result:", result);
+
             if (result.type === "success") {
+                // Parse the checkout ID from the return URL for reference
+                const returnUrl = result.url;
+                const checkoutId = returnUrl ? new URL(returnUrl).searchParams.get("checkout_id") : null;
+                console.log("✅ Checkout completed! Checkout ID:", checkoutId);
+
+                // Optimistically mark the user as premium
+                await markAsPremium(user.email, planId);
+                // Also refresh to sync from Firebase
                 await refreshSubscription();
-                Alert.alert("Success", "Subscription successful!");
+
+                Alert.alert(
+                    "🎉 Welcome to Pro!",
+                    "Your subscription is now active. Enjoy unlimited access!",
+                    [{ text: "Let's Go!", onPress: () => router.back() }]
+                );
+            } else if (result.type === "cancel" || result.type === "dismiss") {
+                console.log("🚪 User cancelled checkout");
             }
         } catch (error) {
-            console.error(error);
+            console.error("❌ Checkout error:", error);
             Alert.alert("Error", "Failed to start checkout process.");
         } finally {
             setLoadingPlan(null);

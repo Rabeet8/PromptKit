@@ -59,6 +59,7 @@ export interface LintResponse {
   issues: string[];
   improved_prompt: string;
   analysis: string;
+  error?: string;
 }
 
 export interface TokenizeResponse {
@@ -71,6 +72,7 @@ export interface SchemaResponse {
   schema: any;
   valid_example: any;
   invalid_example: any;
+  error?: string;
 }
 
 export interface ModelsResponse {

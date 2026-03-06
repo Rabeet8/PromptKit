@@ -35,7 +35,7 @@ export default function PaywallModal({ visible, onClose, onUpgradeSuccess, isLim
             // Open Polar checkout in browser
             const result = await WebBrowser.openAuthSessionAsync(
                 checkoutUrl,
-                `promptkit://upgrade-success?plan=${selectedPlan}`
+                `promptkit://upgrade-success`
             );
 
             console.log("🔄 Browser result:", result);

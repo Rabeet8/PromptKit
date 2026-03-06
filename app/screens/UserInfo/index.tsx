@@ -17,8 +17,7 @@ import {
 } from "react-native";
 
 import { LinearGradient } from "expo-linear-gradient";
-import * as WebBrowser from "expo-web-browser";
-import { BadgeDollarSign, Calculator, ChevronRight, Crown, ExternalLink, FileJson, ListChecks } from "lucide-react-native";
+import { BadgeDollarSign, Calculator, FileJson, ListChecks } from "lucide-react-native";
 
 import PrimaryButton from "@/components/Button.tsx";
 import DescriptionInput from "@/components/DescriptionCard.tsx";
@@ -281,15 +280,6 @@ export default function ProfileScreen() {
           <View style={styles.profileInfo}>
             <Text style={styles.profileEmail}>{auth.currentUser?.email}</Text>
             <Text style={styles.profileRole}>{userType || "User"}</Text>
-
-            <TouchableOpacity
-              style={styles.viewPlansButton}
-              onPress={() => router.push("/screens/Plans" as any)}
-            >
-              <Crown size={14} color="#F59E0B" />
-              <Text style={styles.viewPlansText}>View Plans</Text>
-              <ChevronRight size={14} color="#F59E0B" />
-            </TouchableOpacity>
           </View>
         </View>
         <Text style={styles.sectionTitle}>Your Activity</Text>
@@ -418,16 +408,6 @@ export default function ProfileScreen() {
           >
             <Text style={styles.deleteButtonText}>Delete Account</Text>
           </TouchableOpacity>
-
-          {isPremium && (
-            <TouchableOpacity
-              style={styles.manageSubButton}
-              onPress={() => WebBrowser.openBrowserAsync("https://polar.sh/settings")}
-            >
-              <ExternalLink size={16} color="#6B7280" />
-              <Text style={styles.manageSubText}>Manage Subscription</Text>
-            </TouchableOpacity>
-          )}
         </View>
       </Animated.ScrollView>
 

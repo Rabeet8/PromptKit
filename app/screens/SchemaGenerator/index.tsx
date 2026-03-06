@@ -78,6 +78,11 @@ export default function SchemaGenerator() {
   const handleGenerate = async () => {
     if (!description.trim()) return;
 
+    // Reset old results
+    setSchema("");
+    setValidExample("");
+    setInvalidExample("");
+
     const requestData = { description };
 
     const startTime = logInferenceStart("schemaGenerator", requestData);
@@ -88,6 +93,13 @@ export default function SchemaGenerator() {
       setLoading(true);
       const res = await SchemaAPI.generateSchema(requestData);
 
+      const isSchemaEmptyArray = Array.isArray(res.schema) && res.schema.length === 0;
+      const isSchemaEmptyObject = res.schema && typeof res.schema === 'object' && Object.keys(res.schema).length === 0;
+
+      if (res.error || !res.schema || isSchemaEmptyArray || isSchemaEmptyObject) {
+        throw new Error(res.error || "Invalid response");
+      }
+
       setSchema(JSON.stringify(res.schema, null, 2));
       setValidExample(JSON.stringify(res.valid_example, null, 2));
       setInvalidExample(JSON.stringify(res.invalid_example, null, 2));
@@ -97,7 +109,7 @@ export default function SchemaGenerator() {
       await incrementUsage("schemaGenerator");
       await logInferenceSuccess("schemaGenerator", requestData, res, startTime);
     } catch (err: any) {
-      const errorMessage = err.message || "An error occurred during schema generation.";
+      const errorMessage = "This feature is not available at the moment, please contact the team.";
       showAlert("Generation Failed", errorMessage, "error");
       await logInferenceError("schemaGenerator", requestData, err, startTime);
     } finally {
