@@ -5,6 +5,7 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 
 import AnimatedSplash from "@/components/AnimatedSplash";
+import ForceUpdateModal from "@/components/ForceUpdateModal";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import {
@@ -86,6 +87,7 @@ export default function RootLayout() {
 
           </Stack>
           {showSplash && <AnimatedSplash onFinish={() => setShowSplash(false)} />}
+          <ForceUpdateModal />
         </ThemeProvider>
       </SubscriptionProvider>
     </AuthProvider>
